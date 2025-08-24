@@ -1,2 +1,27 @@
+Migration DB:
 npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
+
+Delete DB (MySQL):
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS
+  `comments`,
+  `imagevehicles`,
+  `pointtickets`,
+  `rates`,
+  `seattickets`,
+  `sequelizemeta`,
+  `tickets`,
+  `timepoints`,
+  `trippassengers`,
+  `trips`,
+  `users`,
+  `seats`,
+  `points`,
+  `stations`,
+  `vehicles`,
+  `passengercarcompanies`;
+
+SET FOREIGN_KEY_CHECKS = 1;
