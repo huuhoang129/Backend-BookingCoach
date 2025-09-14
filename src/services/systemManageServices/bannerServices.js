@@ -58,7 +58,6 @@ let createBanner = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.title || !data.imageBase64) {
-        console.log("📥 Data nhận từ frontend:", data); // thêm log
         resolve({
           errCode: 1,
           errMessage: "Missing parameter",
