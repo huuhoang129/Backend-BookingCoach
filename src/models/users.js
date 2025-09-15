@@ -3,16 +3,17 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    static associate(models) {
-      User.hasMany(models.News, { foreignKey: "authorId", as: "news" });
-    }
+    static associate(models) {}
   }
   User.init(
     {
-      name: DataTypes.STRING,
       email: DataTypes.STRING,
       password: DataTypes.STRING,
-      role: DataTypes.ENUM("admin", "editor", "customer"),
+      firstName: DataTypes.STRING,
+      lastName: DataTypes.STRING,
+      phoneNumber: DataTypes.STRING,
+      role: DataTypes.ENUM("Admin", "Staff", "Driver", "Client"),
+      status: DataTypes.ENUM("Active", "Looking"),
     },
     {
       sequelize,

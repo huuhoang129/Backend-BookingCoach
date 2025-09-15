@@ -1,7 +1,7 @@
 import express from "express";
-// import userController from "../controllers/userController";
+
 import bannerController from "../controllers/systemManageController/bannerController.js";
-import newController from "../controllers/systemManageController/newController.js";
+import authController from "../controllers/userManageController/authController.js";
 
 let router = express.Router();
 
@@ -13,11 +13,10 @@ let initWebRoutes = (app) => {
   router.put("/api/v1/edit-banner", bannerController.editBanner);
   router.delete("/api/v1/delete-banner", bannerController.deleteBanner);
 
-  router.post("/api/v1/create-new", newController.createNews);
-  router.get("/api/v1/get-all-news", newController.getAllNews);
-  router.get("/api/v1/get-news-by-id", newController.getNewsById);
-  router.delete("/api/v1/delete-news", newController.deleteNews);
-  router.put("/api/v1/edit-news", newController.editNews);
+  router.post("/api/v1/register", authController.registerUser);
+  router.post("/api/v1/login", authController.loginUser);
+  router.post("/api/v1/forgot-password", authController.forgotPassword);
+  router.post("/api/v1/reset-password", authController.resetPassword);
   return app.use("/", router);
 };
 
