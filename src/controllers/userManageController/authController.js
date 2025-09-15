@@ -1,4 +1,4 @@
-import authService from "../../services/userManageServices/authServices.js";
+import authService from "../../services/userManageServices/authServices";
 
 let loginUser = async (req, res) => {
   let email = req.body.email;
@@ -11,7 +11,7 @@ let loginUser = async (req, res) => {
     });
   }
 
-  let userData = await userService.handleUserLogin(email, password);
+  let userData = await authService.handleUserLogin(email, password);
 
   return res.status(200).json({
     errCode: userData.errCode,
@@ -22,13 +22,13 @@ let loginUser = async (req, res) => {
 
 let registerUser = async (req, res) => {
   console.log("req.body:", req.body);
-  let message = await userService.handleUserRegister(req.body);
+  let message = await authService.handleUserRegister(req.body);
   return res.status(200).json(message);
 };
 
 let forgotPassword = async (req, res) => {
   let { email } = req.body;
-  let result = await userService.handleForgotPassword(email);
+  let result = await authService.handleForgotPassword(email);
   return res.status(200).json(result);
 };
 
@@ -43,7 +43,7 @@ let resetPassword = async (req, res) => {
     });
   }
 
-  let result = await userService.handleResetPassword(email, otp, newPassword);
+  let result = await authService.handleResetPassword(email, otp, newPassword);
   return res.status(200).json(result);
 };
 

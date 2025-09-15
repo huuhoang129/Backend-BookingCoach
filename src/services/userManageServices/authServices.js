@@ -28,44 +28,50 @@ let handleUserLogin = (email, password) => {
     try {
       let userData = {};
 
-      let isExist = await checkUserEmail(email);
-      if (isExist) {
-        let user = await db.User.findOne({
-          attributes: [
-            "id",
-            "email",
-            "password",
-            "firstName",
-            "lastName",
-            "phoneNumber",
-            "role",
-            "status",
-          ],
-          where: { email: email },
-          raw: true,
-        });
-        if (user) {
-          //compare password
-          let check = await bcrypt.compareSync(password, user.password);
+      let user = await db.User.findOne({
+        attributes: [
+          "id",
+          "email",
+          "password",
+          "firstName",
+          "lastName",
+          "phoneNumber",
+          "role",
+          "status",
+        ],
+        where: { email: email },
+        raw: true,
+      });
 
-          if (check) {
-            userData.errCode = 0;
-            (userData.errMessage = "Ok"), delete user.password;
-            userData.user = user;
-          } else {
-            userData.errCode = 3;
-            userData.errMessage = "Wrong password";
-          }
-        } else {
-          userData.errCode = 2;
-          userData.errMessage = `User's not found`;
-        }
-      } else {
+      if (!user) {
         userData.errCode = 1;
-        userData.errMessage = `Your's Gmail isn't exist in your system. Please try other gmail!`;
+        userData.errMessage = "Email is not registered!";
+        return resolve(userData);
       }
 
-      resolve(userData);
+      // So sánh password
+      let checkPassword = await bcrypt.compare(password, user.password);
+
+      if (!checkPassword) {
+        userData.errCode = 2;
+        userData.errMessage = "Wrong password!";
+        return resolve(userData);
+      }
+
+      // Check status (nếu bị khóa thì không cho login)
+      if (user.status === "Locking" || user.status === "Locked") {
+        userData.errCode = 3;
+        userData.errMessage = "Your account is locked. Please contact admin!";
+        return resolve(userData);
+      }
+
+      // Login thành công
+      delete user.password;
+      userData.errCode = 0;
+      userData.errMessage = "OK";
+      userData.user = user;
+
+      return resolve(userData);
     } catch (e) {
       reject(e);
     }

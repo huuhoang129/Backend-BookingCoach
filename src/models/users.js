@@ -3,7 +3,13 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    static associate(models) {}
+    static associate(models) {
+      // Một User (Staff/Driver) có 1 StaffDetail
+      User.hasOne(models.StaffDetail, {
+        foreignKey: "userId",
+        as: "staffDetail", // 👈 alias này phải dùng khi include
+      });
+    }
   }
   User.init(
     {
