@@ -1,5 +1,16 @@
 import db from "../../models/index.js";
-
+import bcrypt from "bcryptjs";
+const salt = bcrypt.genSaltSync(10);
+let hashUserPassword = (password) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let hashPassword = await bcrypt.hashSync(password, salt);
+      resolve(hashPassword);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 let getAllEmployees = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -70,16 +81,16 @@ let getEmployeeById = (inputId) => {
   });
 };
 
+function generateEmployeeCode(role, id) {
+  if (role === "Staff") return `STF${String(id).padStart(4, "0")}`;
+  if (role === "Driver") return `DRV${String(id).padStart(4, "0")}`;
+  return `EMP${String(id).padStart(4, "0")}`;
+}
+
 let createEmployee = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (
-        !data.email ||
-        !data.password ||
-        !data.firstName ||
-        !data.lastName ||
-        !data.role
-      ) {
+      if (!data.email || !data.firstName || !data.lastName || !data.role) {
         resolve({
           errCode: 1,
           errMessage: "Missing required parameters!",
@@ -97,9 +108,14 @@ let createEmployee = (data) => {
             errMessage: "Email already in use!",
           });
         } else {
+          // 👇 password mặc định
+          let defaultPassword = "123456";
+          let hashedPassword = await hashUserPassword(defaultPassword);
+
+          // 1. Tạo user trước
           let newUser = await db.User.create({
             email: data.email,
-            password: data.password,
+            password: hashedPassword,
             firstName: data.firstName,
             lastName: data.lastName,
             phoneNumber: data.phoneNumber || null,
@@ -107,6 +123,12 @@ let createEmployee = (data) => {
             status: "Active",
           });
 
+          // 2. Sinh mã nhân viên từ role + id
+          let employeeCode = generateEmployeeCode(data.role, newUser.id);
+          newUser.userCode = employeeCode;
+          await newUser.save();
+
+          // 3. Thêm staff detail nếu có
           if (data.address || data.dateOfBirth || data.citizenId) {
             await db.StaffDetail.create({
               userId: newUser.id,
@@ -119,6 +141,8 @@ let createEmployee = (data) => {
           resolve({
             errCode: 0,
             errMessage: "Create Employee Success!",
+            defaultPassword,
+            employeeCode, // 👉 trả về mã nhân viên
           });
         }
       }

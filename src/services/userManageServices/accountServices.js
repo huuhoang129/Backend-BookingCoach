@@ -4,7 +4,7 @@ let getAllAccounts = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let users = await db.User.findAll({
-        attributes: ["email", "role"],
+        attributes: ["id", "email", "role", "status"], // ✅ thêm id, status
         raw: true,
       });
 

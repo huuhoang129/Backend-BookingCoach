@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
       phoneNumber: DataTypes.STRING,
       role: DataTypes.ENUM("Admin", "Staff", "Driver", "Client"),
       status: DataTypes.ENUM("Active", "Looking"),
+      userCode: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true, // 👈 đảm bảo không trùng mã
+      },
     },
     {
       sequelize,

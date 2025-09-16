@@ -26,6 +26,19 @@ let getUserById = async (req, res) => {
   }
 };
 
+let createUser = async (req, res) => {
+  try {
+    let message = await userServices.createUser(req.body);
+    return res.status(200).json(message);
+  } catch (e) {
+    console.error("❌ Error in handleCreateUser:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Error from server!",
+    });
+  }
+};
+
 let editUser = async (req, res) => {
   try {
     let data = req.body;
@@ -62,6 +75,7 @@ let deleteUser = async (req, res) => {
 export default {
   getAllUsers,
   getUserById,
+  createUser,
   editUser,
   deleteUser,
 };
