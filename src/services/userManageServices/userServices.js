@@ -67,9 +67,7 @@ let hashUserPassword = (password) => {
 };
 
 function generateUserCode(role, id) {
-  if (role === "Staff") return `STF${String(id).padStart(4, "0")}`;
-  if (role === "Driver") return `DRV${String(id).padStart(4, "0")}`;
-  if (role === "Client") return `KH${String(id).padStart(4, "0")}`; // 👈 mã khách hàng
+  if (role === "Client") return `KH${String(id).padStart(4, "0")}`;
   return `EMP${String(id).padStart(4, "0")}`;
 }
 
@@ -83,7 +81,6 @@ let createUser = (data) => {
         });
       }
 
-      // Check email đã tồn tại chưa
       let existingUser = await db.User.findOne({
         where: { email: data.email },
       });
@@ -94,10 +91,8 @@ let createUser = (data) => {
         });
       }
 
-      // Hash password
       let hashPassword = await hashUserPassword(data.password);
 
-      // 👉 Bước 1: tạo user trước
       let newUser = await db.User.create({
         email: data.email,
         password: hashPassword,
@@ -108,17 +103,15 @@ let createUser = (data) => {
         status: "Active",
       });
 
-      // 👉 Bước 2: sinh mã code dựa trên role + id
       let userCode = generateUserCode(newUser.role, newUser.id);
 
-      // 👉 Bước 3: cập nhật lại bản ghi với userCode
-      newUser.userCode = userCode; // đảm bảo trong model có cột customerCode
+      newUser.userCode = userCode;
       await newUser.save();
 
       resolve({
         errCode: 0,
         errMessage: "Create User Success!",
-        data: newUser, // trả luôn user vừa tạo cho FE nếu cần
+        data: newUser,
       });
     } catch (e) {
       reject(e);

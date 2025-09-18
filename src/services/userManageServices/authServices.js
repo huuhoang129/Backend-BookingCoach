@@ -4,7 +4,6 @@ import crypto from "crypto";
 import emailService from "../emailServices.js";
 
 const salt = bcrypt.genSaltSync(10);
-let resetOTPs = {};
 
 let checkUserEmail = (userEmail) => {
   return new Promise(async (resolve, reject) => {
@@ -90,9 +89,7 @@ let hashUserPassword = (password) => {
 };
 
 function generateUserCode(role, id) {
-  if (role === "Staff") return `STF${String(id).padStart(4, "0")}`;
-  if (role === "Driver") return `DRV${String(id).padStart(4, "0")}`;
-  if (role === "Client") return `KH${String(id).padStart(4, "0")}`; // 👈 mã khách hàng
+  if (role === "Client") return `KH${String(id).padStart(4, "0")}`;
   return `EMP${String(id).padStart(4, "0")}`;
 }
 
@@ -116,11 +113,10 @@ let handleUserRegister = (data) => {
           firstName: data.firstName,
           lastName: data.lastName,
           phoneNumber: data.phoneNumber,
-          role: "Client", // mặc định Client
+          role: "Client",
           status: "Active",
         });
 
-        // 👉 B2: sinh mã code dựa vào role + id
         let userCode = generateUserCode(newUser.role, newUser.id);
 
         // 👉 B3: update lại user với mã vừa tạo

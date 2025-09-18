@@ -1,6 +1,8 @@
 import db from "../../models/index.js";
 import bcrypt from "bcryptjs";
+
 const salt = bcrypt.genSaltSync(10);
+
 let hashUserPassword = (password) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -11,6 +13,7 @@ let hashUserPassword = (password) => {
     }
   });
 };
+
 let getAllEmployees = () => {
   return new Promise(async (resolve, reject) => {
     try {
