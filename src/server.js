@@ -18,9 +18,14 @@ app.use(function (req, res, next) {
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "X-Requested-With,content-type"
+    "X-Requested-With,Content-Type,Authorization"
   );
   res.setHeader("Access-Control-Allow-Credentials", true);
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
   next();
 });
 

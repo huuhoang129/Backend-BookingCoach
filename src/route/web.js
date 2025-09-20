@@ -19,73 +19,23 @@ let initWebRoutes = (app) => {
   router.put("/api/v1/edit-banner", bannerController.editBanner);
   router.delete("/api/v1/delete-banner", bannerController.deleteBanner);
 
-  // Static Page
-  // About
-  router.get("/api/v1/get-about-page", staticPageController.getAboutPage);
-  // router.post(
-  //   "/api/v1/create-about-page",
-  //   staticPageController.createAboutPage
-  // );
-  router.put("/api/v1/update-about-page", staticPageController.updateAboutPage);
-
-  // Conditions
   router.get(
-    "/api/v1/get-conditions-page",
-    staticPageController.getConditionsPage
+    "/api/v1/static-page/:pageKey",
+    staticPageController.getStaticPage
   );
   router.put(
-    "/api/v1/update-conditions-page",
-    staticPageController.updateConditionsPage
-  );
-
-  // PrivacyPolicy
-  router.get(
-    "/api/v1/get-privacy-policy-page",
-    staticPageController.getPrivacyPolicyPage
-  );
-  router.put(
-    "/api/v1/update-privacy-policy-page",
-    staticPageController.updatePrivacyPolicyPage
-  );
-
-  // RefundPolicy
-  router.get(
-    "/api/v1/get-refund-policy-page",
-    staticPageController.getRefundPolicyPage
-  );
-  router.put(
-    "/api/v1/update-refund-policy-page",
-    staticPageController.updateRefundPolicyPage
-  );
-
-  // PaymentPolicy
-  router.get(
-    "/api/v1/get-payment-policy-page",
-    staticPageController.getPaymentPolicyPage
-  );
-  router.put(
-    "/api/v1/update-payment-policy-page",
-    staticPageController.updatePaymentPolicyPage
-  );
-
-  // CancellationPolicy
-  router.get(
-    "/api/v1/get-cancellation-policy-page",
-    staticPageController.getCancellationPolicyPage
-  );
-  router.put(
-    "/api/v1/update-cancellation-policy-page",
-    staticPageController.updateCancellationPolicyPage
+    "/api/v1/static-page/:pageKey",
+    staticPageController.updateStaticPage
   );
 
   // Conditions
   router.get(
-    "/api/v1/get-shipping-policy-page",
-    staticPageController.getShippingPolicyPage
+    "/api/v1/static-page/:pageKey",
+    staticPageController.getStaticPage
   );
   router.put(
-    "/api/v1/update-shipping-policy-page",
-    staticPageController.updateShippingPolicyPage
+    "/api/v1/static-page/:pageKey",
+    staticPageController.updateStaticPage
   );
 
   router.post("/api/v1/register", authController.registerUser);
