@@ -6,6 +6,7 @@ import authController from "../controllers/userManageController/authController.j
 import userController from "../controllers/userManageController/userController.js";
 import employeeController from "../controllers/userManageController/employeeController.js";
 import accountController from "../controllers/userManageController/accountController.js";
+import newsController from "../controllers/systemManageController/newController";
 import { uploadFile } from "../controllers/uploadController.js";
 
 let router = express.Router();
@@ -19,6 +20,7 @@ let initWebRoutes = (app) => {
   router.put("/api/v1/edit-banner", bannerController.editBanner);
   router.delete("/api/v1/delete-banner", bannerController.deleteBanner);
 
+  // staticPage
   router.get(
     "/api/v1/static-page/:pageKey",
     staticPageController.getStaticPage
@@ -28,15 +30,12 @@ let initWebRoutes = (app) => {
     staticPageController.updateStaticPage
   );
 
-  // Conditions
-  router.get(
-    "/api/v1/static-page/:pageKey",
-    staticPageController.getStaticPage
-  );
-  router.put(
-    "/api/v1/static-page/:pageKey",
-    staticPageController.updateStaticPage
-  );
+  // News
+  router.get("/api/v1/news", newsController.getAllNews);
+  router.get("/api/v1/news/:id", newsController.getNewsById);
+  router.post("/api/v1/news", newsController.createNews);
+  router.put("/api/v1/news", newsController.updateNews);
+  router.delete("/api/v1/news/:id", newsController.deleteNews);
 
   router.post("/api/v1/register", authController.registerUser);
   router.post("/api/v1/login", authController.loginUser);

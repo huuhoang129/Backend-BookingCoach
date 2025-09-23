@@ -4,10 +4,14 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // Một User (Staff/Driver) có 1 StaffDetail
       User.hasOne(models.StaffDetail, {
         foreignKey: "userId",
-        as: "staffDetail", // 👈 alias này phải dùng khi include
+        as: "staffDetail",
+      });
+
+      User.hasMany(models.News, {
+        foreignKey: "authorId",
+        as: "news",
       });
     }
   }
@@ -23,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       userCode: {
         type: DataTypes.STRING,
         allowNull: true,
-        unique: true, // 👈 đảm bảo không trùng mã
+        unique: true,
       },
     },
     {
