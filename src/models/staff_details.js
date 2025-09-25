@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "StaffDetail",
-      tableName: "staff_details", // 👈 đúng tên bảng trong MySQL
+      tableName: "staff_details",
     }
   );
 
