@@ -12,6 +12,16 @@ module.exports = (sequelize, DataTypes) => {
         as: "province",
         onDelete: "CASCADE",
       });
+
+      this.hasMany(models.CoachRoute, {
+        foreignKey: "fromLocationId",
+        as: "routesFrom",
+      });
+
+      this.hasMany(models.CoachRoute, {
+        foreignKey: "toLocationId",
+        as: "routesTo",
+      });
     }
   }
 

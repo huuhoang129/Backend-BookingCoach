@@ -16,7 +16,7 @@ let getAllProvinces = async (req, res) => {
 
 let getProvinceById = async (req, res) => {
   try {
-    let infor = await provinceLocationServices.getProvinceById(req.query.id);
+    let infor = await provinceLocationServices.getProvinceById(req.params.id);
     return res.status(200).json(infor);
   } catch (e) {
     console.log(e);
@@ -68,7 +68,7 @@ let getAllLocations = async (req, res) => {
 
 let getLocationById = async (req, res) => {
   try {
-    let infor = await provinceLocationServices.getLocationById(req.query.id);
+    let infor = await provinceLocationServices.getLocationById(req.params.id); // 👈 đổi sang params
     return res.status(200).json(infor);
   } catch (e) {
     console.log(e);

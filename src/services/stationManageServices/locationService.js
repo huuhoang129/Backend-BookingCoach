@@ -35,6 +35,7 @@ let getProvinceById = (inputId) => {
         let province = await db.Province.findOne({
           where: { id: inputId },
           include: [{ model: db.Location, as: "locations" }],
+          raw: false,
         });
 
         resolve({
@@ -129,6 +130,7 @@ let getLocationById = (inputId) => {
         let location = await db.Location.findOne({
           where: { id: inputId },
           include: [{ model: db.Province, as: "province" }],
+          raw: false,
         });
 
         resolve({
