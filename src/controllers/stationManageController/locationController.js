@@ -104,6 +104,20 @@ let deleteLocation = async (req, res) => {
   return res.status(200).json(message);
 };
 
+let getAllLocationsTree = async (req, res) => {
+  try {
+    let data =
+      await provinceLocationServices.getAllProvincesWithLocationsTree();
+    return res.status(200).json(data);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Error from server",
+    });
+  }
+};
+
 module.exports = {
   getAllProvinces,
   getProvinceById,
@@ -113,4 +127,5 @@ module.exports = {
   getLocationById,
   createLocation,
   deleteLocation,
+  getAllLocationsTree,
 };

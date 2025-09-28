@@ -9,6 +9,7 @@ import accountController from "../controllers/userManageController/accountContro
 import newsController from "../controllers/systemManageController/newController";
 import locationsController from "../controllers/stationManageController/locationController";
 import routesController from "../controllers/stationManageController/routeController.js";
+import coachTripController from "../controllers/stationManageController/coachTripController.js";
 import { uploadFile } from "../controllers/uploadController.js";
 
 let router = express.Router();
@@ -41,12 +42,22 @@ let initWebRoutes = (app) => {
   router.get("/api/v1/locations/:id", locationsController.getLocationById);
   router.post("/api/v1/locations", locationsController.createLocation);
   router.delete("/api/v1/locations/:id", locationsController.deleteLocation);
+  router.get("/api/v1/locations-tree", locationsController.getAllLocationsTree);
 
+  // coachRoute
   router.get("/api/v1/routes", routesController.getAllRoutes);
   router.get("/api/v1/routes/:id", routesController.getRouteById);
   router.post("/api/v1/routes", routesController.createRoute);
   router.put("/api/v1/routes/:id", routesController.updateRoute);
   router.delete("/api/v1/routes/:id", routesController.deleteRoute);
+
+  // coachTrip
+  router.get("/api/v1/trips", coachTripController.getAllTrips);
+  router.get("/api/v1/trips/:id", coachTripController.getTripById);
+  router.post("/api/v1/trips", coachTripController.createTrip);
+  router.put("/api/v1/trips/:id", coachTripController.updateTrip);
+  router.delete("/api/v1/trips/:id", coachTripController.deleteTrip);
+  router.get("/api/v1/search-trips", coachTripController.searchTrips);
 
   // News
   router.get("/api/v1/news", newsController.getAllNews);

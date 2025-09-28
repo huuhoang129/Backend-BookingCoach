@@ -3,17 +3,20 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class CoachRoute extends Model {
-    /**
-     * Associations
-     */
-    static associate({ Location }) {
-      this.belongsTo(Location, {
+    static associate(models) {
+      this.hasMany(models.CoachTrip, {
+        foreignKey: "coachRouteId",
+        as: "trips",
+        onDelete: "CASCADE",
+      });
+
+      this.belongsTo(models.Location, {
         foreignKey: "fromLocationId",
         as: "fromLocation",
         onDelete: "CASCADE",
       });
 
-      this.belongsTo(Location, {
+      this.belongsTo(models.Location, {
         foreignKey: "toLocationId",
         as: "toLocation",
         onDelete: "CASCADE",

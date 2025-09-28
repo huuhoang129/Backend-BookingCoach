@@ -6,7 +6,7 @@ let getAllProvinces = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let provinces = await db.Province.findAll({
-        include: [{ model: db.Location, as: "locations" }],
+        // include: [{ model: db.Location, as: "locations" }],
         order: [["nameProvince", "ASC"]],
         raw: true,
         nest: true,
@@ -54,19 +54,27 @@ let createProvince = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.nameProvince) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Missing parameter",
         });
-      } else {
-        await db.Province.create({
-          nameProvince: data.nameProvince,
-        });
-        resolve({
-          errCode: 0,
-          errMessage: "OK",
-        });
       }
+
+      // generate code: lấy chữ cái đầu viết hoa
+      const code = data.nameProvince
+        .split(" ")
+        .map((word) => word[0]?.toUpperCase())
+        .join("");
+
+      await db.Province.create({
+        nameProvince: data.nameProvince,
+        valueProvince: code, // 👈 tự gán luôn ở service
+      });
+
+      resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
     } catch (e) {
       reject(e);
     }
@@ -101,7 +109,7 @@ let getAllLocations = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let locations = await db.Location.findAll({
-        include: [{ model: db.Province, as: "province" }],
+        // include: [{ model: db.Province, as: "province" }],
         order: [["id", "ASC"]],
         raw: true,
         nest: true,
@@ -192,6 +200,35 @@ let deleteLocation = (locationId) => {
   });
 };
 
+let getAllProvincesWithLocationsTree = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let provinces = await db.Province.findAll({
+        include: [{ model: db.Location, as: "locations" }],
+        order: [["nameProvince", "ASC"]],
+        raw: false,
+      });
+
+      let data = provinces.map((province) => ({
+        value: province.valueProvince, // 👈 lấy code HN, QN, ...
+        label: province.nameProvince,
+        children: province.locations.map((loc) => ({
+          value: loc.id.toString(), // location vẫn để id
+          label: loc.nameLocations,
+        })),
+      }));
+
+      resolve({
+        errCode: 0,
+        errMessage: "OK",
+        data,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 module.exports = {
   getAllProvinces,
   getProvinceById,
@@ -201,4 +238,5 @@ module.exports = {
   getLocationById,
   createLocation,
   deleteLocation,
+  getAllProvincesWithLocationsTree,
 };
