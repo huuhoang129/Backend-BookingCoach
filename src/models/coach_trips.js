@@ -40,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TIME,
         allowNull: true,
       },
+      basePrice: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       status: {
         type: DataTypes.ENUM("OPEN", "FULL", "CANCELLED"),
         defaultValue: "OPEN",

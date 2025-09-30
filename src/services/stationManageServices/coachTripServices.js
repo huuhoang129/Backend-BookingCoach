@@ -107,7 +107,8 @@ let createTrip = (data) => {
         !data.coachRouteId ||
         !data.vehicleId ||
         !data.startDate ||
-        !data.startTime
+        !data.startTime ||
+        !data.basePrice
       ) {
         return resolve({
           errCode: 1,
@@ -121,6 +122,7 @@ let createTrip = (data) => {
         startDate: data.startDate,
         startTime: data.startTime,
         totalTime: data.totalTime || null,
+        basePrice: data.basePrice,
         status: data.status || "OPEN",
       });
 
@@ -231,26 +233,59 @@ let findTripsByRouteAndDate = (
               },
             ],
           },
-          { model: db.Vehicle, as: "vehicle" },
+          {
+            model: db.Vehicle,
+            as: "vehicle",
+            include: [
+              {
+                model: db.Seat,
+                as: "seatVehicle",
+                attributes: ["id", "name", "status", "floor"],
+              },
+            ],
+          },
         ],
         where: {
           startDate: {
-            [Op.between]: [startDate, endDate], // 👈 lọc trong khoảng ngày
+            [Op.between]: [startDate, endDate],
           },
           status: "OPEN",
         },
         order: [
-          ["startDate", "ASC"], // 👈 sắp theo ngày
-          ["startTime", "ASC"], // rồi theo giờ
+          ["startDate", "ASC"],
+          ["startTime", "ASC"],
         ],
         raw: false,
         nest: true,
       });
 
+      let tripsWithSeats = trips.map((trip) => {
+        const seats = trip.vehicle?.seatVehicle || [];
+        const totalSeats = seats.length;
+        const bookedSeats = seats.filter((s) => s.status === "SOLD").length;
+        const availableSeats = totalSeats - bookedSeats;
+
+        // convert về plain object
+        let plainTrip = trip.toJSON();
+        delete plainTrip.vehicle.seatVehicle;
+
+        return {
+          ...plainTrip,
+          totalSeats,
+          availableSeats,
+          seats: seats.map((s) => ({
+            id: s.id,
+            name: s.name,
+            status: s.status,
+            floor: s.floor,
+          })),
+        };
+      });
+
       resolve({
         errCode: 0,
         errMessage: "OK",
-        data: trips,
+        data: tripsWithSeats,
       });
     } catch (e) {
       reject(e);
