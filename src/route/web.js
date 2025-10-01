@@ -10,6 +10,12 @@ import newsController from "../controllers/systemManageController/newController"
 import locationsController from "../controllers/stationManageController/locationController";
 import routesController from "../controllers/stationManageController/routeController.js";
 import coachTripController from "../controllers/stationManageController/coachTripController.js";
+import bookingController from "../controllers/bookingManageController/bookingController";
+import bookingCustomerController from "../controllers/bookingManageController/bookingCustomerController.js";
+import bookingPointController from "../controllers/bookingManageController/bookingPointController.js";
+import bookingSeatController from "../controllers/bookingManageController/bookingSeatController.js";
+import bookingPaymentController from "../controllers/bookingManageController/bookingPaymentController.js";
+import paymentController from "../controllers/paymentManageController/paymentController";
 import { uploadFile } from "../controllers/uploadController.js";
 
 let router = express.Router();
@@ -58,6 +64,71 @@ let initWebRoutes = (app) => {
   router.put("/api/v1/trips/:id", coachTripController.updateTrip);
   router.delete("/api/v1/trips/:id", coachTripController.deleteTrip);
   router.get("/api/v1/search-trips", coachTripController.searchTrips);
+
+  //booking
+  router.get("/api/v1/bookings", bookingController.getAllBookings);
+  router.get("/api/v1/bookings/:id", bookingController.getBookingById);
+  router.post("/api/v1/bookings", bookingController.createBooking);
+  router.put("/api/v1/bookings", bookingController.updateBookingStatus);
+  router.delete("/api/v1/bookings/:id", bookingController.deleteBooking);
+
+  //bookingCustomer
+  router.get(
+    "/api/v1/bookings/:bookingId/customers",
+    bookingCustomerController.getCustomersByBooking
+  );
+  router.post(
+    "/api/v1/bookings/customers",
+    bookingCustomerController.addCustomer
+  );
+  router.put(
+    "/api/v1/bookings/customers",
+    bookingCustomerController.updateCustomer
+  );
+  router.delete(
+    "/api/v1/bookings/customers/:id",
+    bookingCustomerController.deleteCustomer
+  );
+
+  //bookingPoint
+  router.get(
+    "/api/v1/bookings/:bookingId/points",
+    bookingPointController.getPointsByBooking
+  );
+  router.post("/api/v1/bookings/points", bookingPointController.addPoint);
+  router.put("/api/v1/bookings/points", bookingPointController.updatePoint);
+  router.delete(
+    "/api/v1/bookings/points/:id",
+    bookingPointController.deletePoint
+  );
+
+  //bookingSeat
+  router.get(
+    "/api/v1/bookings/:bookingId/seats",
+    bookingSeatController.getSeatsByBooking
+  );
+  router.post("/api/v1/bookings/seats", bookingSeatController.addSeat);
+  router.put("/api/v1/bookings/seats", bookingSeatController.updateSeat);
+  router.delete("/api/v1/bookings/seats/:id", bookingSeatController.deleteSeat);
+
+  //payment
+  router.post(
+    "/api/v1/bookings/payments",
+    bookingPaymentController.createPayment
+  );
+  router.get(
+    "/api/v1/bookings/payments/:bookingId",
+    bookingPaymentController.getPaymentByBooking
+  );
+  router.put(
+    "/api/v1/bookings/payments/status",
+    bookingPaymentController.updatePaymentStatus
+  );
+
+  router.post(
+    "/api/v1/payments/create-banking-qr",
+    paymentController.createBankingQR
+  );
 
   // News
   router.get("/api/v1/news", newsController.getAllNews);
