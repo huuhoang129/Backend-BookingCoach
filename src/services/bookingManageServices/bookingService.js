@@ -1,8 +1,6 @@
 import db from "../../models/index.js";
+import paymentService from "../bookingManageServices/bookingPaymentService.js";
 
-/**
- * Lấy tất cả bookings
- */
 let getAllBookings = async () => {
   try {
     let bookings = await db.Bookings.findAll({
@@ -41,9 +39,6 @@ let getAllBookings = async () => {
   }
 };
 
-/**
- * Lấy booking theo id
- */
 let getBookingById = async (bookingId) => {
   try {
     if (!bookingId) {
@@ -94,9 +89,6 @@ let getBookingById = async (bookingId) => {
   }
 };
 
-/**
- * Generate bookingCode: BK + YYYYMMDD + 4 số random
- */
 const generateBookingCode = () => {
   const date = new Date();
   const y = date.getFullYear();
@@ -106,9 +98,6 @@ const generateBookingCode = () => {
   return `BK${y}${m}${d}${rand}`;
 };
 
-/**
- * Tạo booking mới
- */
 let createBooking = async (data) => {
   const t = await db.sequelize.transaction();
   try {
@@ -193,6 +182,18 @@ let createBooking = async (data) => {
       }
     }
 
+    // 5. Payment (CASH)
+    if (data.paymentMethod === "CASH") {
+      await paymentService.createPayment(
+        {
+          bookingId: newBooking.id,
+          method: "CASH",
+          amount: data.totalAmount,
+        },
+        t
+      );
+    }
+
     await t.commit();
     return {
       errCode: 0,
@@ -205,9 +206,6 @@ let createBooking = async (data) => {
   }
 };
 
-/**
- * Cập nhật trạng thái booking
- */
 let updateBookingStatus = async (bookingId, status) => {
   const t = await db.sequelize.transaction();
   try {
