@@ -1,6 +1,7 @@
 import db from "../../models/index.js";
 import { Op } from "sequelize";
 
+// Lấy tất cả trip
 let getAllTrips = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -24,6 +25,7 @@ let getAllTrips = () => {
             ],
           },
           { model: db.Vehicle, as: "vehicle" },
+          { model: db.TripPrices, as: "price" }, // ✅ include price
         ],
         order: [
           ["startDate", "ASC"],
@@ -33,17 +35,14 @@ let getAllTrips = () => {
         nest: true,
       });
 
-      resolve({
-        errCode: 0,
-        errMessage: "OK",
-        data: trips,
-      });
+      resolve({ errCode: 0, errMessage: "OK", data: trips });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Lấy trip theo id
 let getTripById = (tripId) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -76,6 +75,7 @@ let getTripById = (tripId) => {
             ],
           },
           { model: db.Vehicle, as: "vehicle" },
+          { model: db.TripPrices, as: "price" }, // ✅ include price
         ],
         raw: false,
         nest: true,
@@ -89,26 +89,23 @@ let getTripById = (tripId) => {
         });
       }
 
-      resolve({
-        errCode: 0,
-        errMessage: "OK",
-        data: trip,
-      });
+      resolve({ errCode: 0, errMessage: "OK", data: trip });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Tạo trip mới
 let createTrip = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (
         !data.coachRouteId ||
         !data.vehicleId ||
+        !data.tripPriceId || // ✅ thay basePrice
         !data.startDate ||
-        !data.startTime ||
-        !data.basePrice
+        !data.startTime
       ) {
         return resolve({
           errCode: 1,
@@ -119,23 +116,21 @@ let createTrip = (data) => {
       await db.CoachTrip.create({
         coachRouteId: data.coachRouteId,
         vehicleId: data.vehicleId,
+        tripPriceId: data.tripPriceId, // ✅ gắn id price
         startDate: data.startDate,
         startTime: data.startTime,
         totalTime: data.totalTime || null,
-        basePrice: data.basePrice,
         status: data.status || "OPEN",
       });
 
-      resolve({
-        errCode: 0,
-        errMessage: "Trip created successfully",
-      });
+      resolve({ errCode: 0, errMessage: "Trip created successfully" });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Cập nhật trip
 let updateTrip = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -150,6 +145,7 @@ let updateTrip = (data) => {
         {
           coachRouteId: data.coachRouteId,
           vehicleId: data.vehicleId,
+          tripPriceId: data.tripPriceId, // ✅ thêm vào update
           startDate: data.startDate,
           startTime: data.startTime,
           totalTime: data.totalTime,
@@ -159,37 +155,26 @@ let updateTrip = (data) => {
       );
 
       if (updated === 0) {
-        return resolve({
-          errCode: 2,
-          errMessage: "Trip not found",
-        });
+        return resolve({ errCode: 2, errMessage: "Trip not found" });
       }
 
-      resolve({
-        errCode: 0,
-        errMessage: "Trip updated successfully",
-      });
+      resolve({ errCode: 0, errMessage: "Trip updated successfully" });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Xóa trip
 let deleteTrip = (tripId) => {
   return new Promise(async (resolve, reject) => {
     try {
       let trip = await db.CoachTrip.findOne({ where: { id: tripId } });
       if (!trip) {
-        resolve({
-          errCode: 2,
-          errMessage: "Trip doesn't exist",
-        });
+        resolve({ errCode: 2, errMessage: "Trip doesn't exist" });
       } else {
         await db.CoachTrip.destroy({ where: { id: tripId } });
-        resolve({
-          errCode: 0,
-          errMessage: "Trip deleted successfully",
-        });
+        resolve({ errCode: 0, errMessage: "Trip deleted successfully" });
       }
     } catch (e) {
       reject(e);
@@ -197,6 +182,7 @@ let deleteTrip = (tripId) => {
   });
 };
 
+// Tìm trip theo route + khoảng ngày
 let findTripsByRouteAndDate = (
   fromLocationId,
   toLocationId,
@@ -244,6 +230,7 @@ let findTripsByRouteAndDate = (
               },
             ],
           },
+          { model: db.TripPrices, as: "price" }, // ✅ include price
         ],
         where: {
           startDate: {
@@ -265,7 +252,6 @@ let findTripsByRouteAndDate = (
         const bookedSeats = seats.filter((s) => s.status === "SOLD").length;
         const availableSeats = totalSeats - bookedSeats;
 
-        // convert về plain object
         let plainTrip = trip.toJSON();
         delete plainTrip.vehicle.seatVehicle;
 
@@ -282,11 +268,7 @@ let findTripsByRouteAndDate = (
         };
       });
 
-      resolve({
-        errCode: 0,
-        errMessage: "OK",
-        data: tripsWithSeats,
-      });
+      resolve({ errCode: 0, errMessage: "OK", data: tripsWithSeats });
     } catch (e) {
       reject(e);
     }

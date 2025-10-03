@@ -40,6 +40,20 @@ let createProvince = async (req, res) => {
   }
 };
 
+let updateProvince = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let result = await provinceLocationServices.updateProvince(id, req.body);
+    return res.status(200).json(result);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Error from the server",
+    });
+  }
+};
+
 let deleteProvince = async (req, res) => {
   const { id } = req.params;
   if (!id) {
@@ -92,6 +106,20 @@ let createLocation = async (req, res) => {
   }
 };
 
+let updateLocation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let result = await provinceLocationServices.updateLocation(id, req.body);
+    return res.status(200).json(result);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Error from the server",
+    });
+  }
+};
+
 let deleteLocation = async (req, res) => {
   const { id } = req.params;
   if (!id) {
@@ -122,10 +150,12 @@ module.exports = {
   getAllProvinces,
   getProvinceById,
   createProvince,
+  updateProvince,
   deleteProvince,
   getAllLocations,
   getLocationById,
   createLocation,
+  updateLocation,
   deleteLocation,
   getAllLocationsTree,
 };

@@ -6,10 +6,27 @@ let getAllBookings = () => {
       let bookings = await db.Bookings.findAll({
         include: [
           { model: db.BookingCustomers, as: "customers" },
-          { model: db.BookingPoints, as: "points" },
+          {
+            model: db.BookingPoints,
+            as: "points",
+            include: [{ model: db.Location, as: "Location" }],
+          },
           { model: db.BookingSeats, as: "seats" },
           { model: db.BookingPayments, as: "payment" },
-          { model: db.CoachTrip, as: "trip" },
+          {
+            model: db.CoachTrip,
+            as: "trip",
+            include: [
+              {
+                model: db.CoachRoute,
+                as: "route",
+                include: [
+                  { model: db.Location, as: "fromLocation" },
+                  { model: db.Location, as: "toLocation" },
+                ],
+              },
+            ],
+          },
         ],
         order: [["createdAt", "DESC"]],
         raw: false,
@@ -42,10 +59,27 @@ let getBookingById = (bookingId) => {
         where: { id: bookingId },
         include: [
           { model: db.BookingCustomers, as: "customers" },
-          { model: db.BookingPoints, as: "points" },
+          {
+            model: db.BookingPoints,
+            as: "points",
+            include: [{ model: db.Location, as: "Location" }],
+          },
           { model: db.BookingSeats, as: "seats" },
-          { model: db.BookingPayments, as: "payment" }, // ✅ fix alias
-          { model: db.CoachTrip, as: "trip" },
+          { model: db.BookingPayments, as: "payment" },
+          {
+            model: db.CoachTrip,
+            as: "trip",
+            include: [
+              {
+                model: db.CoachRoute,
+                as: "route",
+                include: [
+                  { model: db.Location, as: "fromLocation" },
+                  { model: db.Location, as: "toLocation" },
+                ],
+              },
+            ],
+          },
         ],
         raw: false,
         nest: true,
@@ -70,6 +104,15 @@ let getBookingById = (bookingId) => {
   });
 };
 
+const generateBookingCode = () => {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const rand = Math.floor(1000 + Math.random() * 9000); // 4 số random
+  return `BK${y}${m}${d}${rand}`;
+};
+
 let createBooking = (data) => {
   return new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
@@ -81,18 +124,22 @@ let createBooking = (data) => {
         });
       }
 
-      // create booking
+      // 🔥 Generate bookingCode
+      const bookingCode = generateBookingCode();
+
+      // 1. Create booking
       let newBooking = await db.Bookings.create(
         {
-          userId: data.userId,
+          userId: data.userId || null,
           coachTripId: data.coachTripId,
           status: "PENDING",
           totalAmount: data.totalAmount,
+          bookingCode, // ✅ lưu code vào DB
         },
         { transaction: t }
       );
 
-      // customers
+      // 2. Customers
       if (data.customers && data.customers.length > 0) {
         await db.BookingCustomers.bulkCreate(
           data.customers.map((c) => ({
@@ -105,7 +152,7 @@ let createBooking = (data) => {
         );
       }
 
-      // points
+      // 3. Points
       if (data.points && data.points.length > 0) {
         await db.BookingPoints.bulkCreate(
           data.points.map((p) => ({
@@ -119,10 +166,10 @@ let createBooking = (data) => {
         );
       }
 
-      // seats
+      // 4. Seats
       if (data.seats && data.seats.length > 0) {
         for (let s of data.seats) {
-          // 🔍 Check ghế trước khi insert
+          // Kiểm tra ghế có tồn tại không
           let seat = await db.Seat.findOne({
             where: { id: s.seatId },
             transaction: t,
@@ -154,9 +201,9 @@ let createBooking = (data) => {
             { transaction: t }
           );
 
-          // Update trạng thái ghế sang HOLD (chờ thanh toán) hoặc SOLD
+          // Update trạng thái ghế sang HOLD (tạm giữ)
           await db.Seat.update(
-            { status: "HOLD" }, // 👉 nên để HOLD trước, khi thanh toán xong thì CONFIRMED → SOLD
+            { status: "HOLD" },
             { where: { id: s.seatId }, transaction: t }
           );
         }
@@ -167,7 +214,7 @@ let createBooking = (data) => {
       resolve({
         errCode: 0,
         errMessage: "Booking created successfully",
-        data: newBooking,
+        data: newBooking, // ✅ trả về booking có bookingCode
       });
     } catch (e) {
       await t.rollback();

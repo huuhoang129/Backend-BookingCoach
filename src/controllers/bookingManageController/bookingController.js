@@ -1,4 +1,6 @@
 import bookingService from "../../services/bookingManageServices/bookingService";
+import { generateInvoice } from "../../services/paymentManageService/invoiceService.js";
+import db from "../../models/index.js";
 
 let getAllBookings = async (req, res) => {
   try {

@@ -81,6 +81,49 @@ let createProvince = (data) => {
   });
 };
 
+let updateProvince = (id, data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!id || !data.nameProvince) {
+        return resolve({
+          errCode: 1,
+          errMessage: "Missing parameter",
+        });
+      }
+
+      let province = await db.Province.findOne({ where: { id } });
+      if (!province) {
+        return resolve({
+          errCode: 2,
+          errMessage: "Province not found",
+        });
+      }
+
+      // generate lại code khi đổi tên
+      const code = data.nameProvince
+        .split(" ")
+        .map((word) => word[0]?.toUpperCase())
+        .join("");
+
+      await db.Province.update(
+        {
+          nameProvince: data.nameProvince,
+          valueProvince: code,
+        },
+        { where: { id } }
+      );
+
+      resolve({
+        errCode: 0,
+        errMessage: "Province updated successfully",
+      });
+    } catch (e) {
+      console.error("❌ Error updateProvince:", e);
+      reject(e);
+    }
+  });
+};
+
 let deleteProvince = (provinceId) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -109,9 +152,9 @@ let getAllLocations = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let locations = await db.Location.findAll({
-        // include: [{ model: db.Province, as: "province" }],
+        include: [{ model: db.Province, as: "province" }],
         order: [["id", "ASC"]],
-        raw: true,
+        raw: false,
         nest: true,
       });
 
@@ -178,6 +221,35 @@ let createLocation = (data) => {
   });
 };
 
+let updateLocation = (id, data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!id || !data.nameLocations || !data.provinceId) {
+        return resolve({ errCode: 1, errMessage: "Missing parameter" });
+      }
+
+      let location = await db.Location.findOne({ where: { id }, raw: false });
+      if (!location) {
+        return resolve({ errCode: 2, errMessage: "Location not found" });
+      }
+
+      await db.Location.update(
+        {
+          nameLocations: data.nameLocations,
+          type: data.type || "station",
+          provinceId: data.provinceId,
+        },
+        { where: { id } }
+      );
+
+      resolve({ errCode: 0, errMessage: "Location updated successfully" });
+    } catch (e) {
+      console.error("❌ Error updateLocation:", e);
+      reject(e);
+    }
+  });
+};
+
 let deleteLocation = (locationId) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -233,10 +305,12 @@ module.exports = {
   getAllProvinces,
   getProvinceById,
   createProvince,
+  updateProvince,
   deleteProvince,
   getAllLocations,
   getLocationById,
   createLocation,
+  updateLocation,
   deleteLocation,
   getAllProvincesWithLocationsTree,
 };

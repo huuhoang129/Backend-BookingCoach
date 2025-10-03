@@ -38,6 +38,10 @@ module.exports = (sequelize, DataTypes) => {
 
   Bookings.init(
     {
+      bookingCode: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       userId: {
         type: DataTypes.STRING,
         allowNull: true,

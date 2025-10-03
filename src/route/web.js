@@ -16,6 +16,11 @@ import bookingPointController from "../controllers/bookingManageController/booki
 import bookingSeatController from "../controllers/bookingManageController/bookingSeatController.js";
 import bookingPaymentController from "../controllers/bookingManageController/bookingPaymentController.js";
 import paymentController from "../controllers/paymentManageController/paymentController";
+import vehicleController from "../controllers/vehicleManageController/vehicleManageController";
+import tripPriceController from "../controllers/tripManageController/tripPriceController";
+import scheduleController from "../controllers/tripManageController/scheduleController";
+import reportController from "../controllers/reportManageController/reportController";
+import invoiceController from "../controllers/paymentManageController/invoiceController";
 import { uploadFile } from "../controllers/uploadController.js";
 
 let router = express.Router();
@@ -43,12 +48,25 @@ let initWebRoutes = (app) => {
   router.get("/api/v1/provinces", locationsController.getAllProvinces);
   router.get("/api/v1/provinces/:id", locationsController.getProvinceById);
   router.post("/api/v1/provinces", locationsController.createProvince);
+  router.put("/api/v1/provinces/:id", locationsController.updateProvince);
   router.delete("/api/v1/provinces/:id", locationsController.deleteProvince);
   router.get("/api/v1/locations", locationsController.getAllLocations);
   router.get("/api/v1/locations/:id", locationsController.getLocationById);
   router.post("/api/v1/locations", locationsController.createLocation);
+  router.put("/api/v1/locations/:id", locationsController.updateLocation);
   router.delete("/api/v1/locations/:id", locationsController.deleteLocation);
   router.get("/api/v1/locations-tree", locationsController.getAllLocationsTree);
+
+  // Schedule
+  router.get("/api/v1/schedules", scheduleController.getAllSchedules);
+  router.get("/api/v1/schedules/:id", scheduleController.getScheduleById);
+  router.post("/api/v1/schedules", scheduleController.createSchedule);
+  router.put("/api/v1/schedules/:id", scheduleController.updateSchedule);
+  router.delete("/api/v1/schedules/:id", scheduleController.deleteSchedule);
+  router.post(
+    "/api/v1/schedules/generate-trips",
+    scheduleController.generateTrips
+  );
 
   // coachRoute
   router.get("/api/v1/routes", routesController.getAllRoutes);
@@ -111,7 +129,14 @@ let initWebRoutes = (app) => {
   router.put("/api/v1/bookings/seats", bookingSeatController.updateSeat);
   router.delete("/api/v1/bookings/seats/:id", bookingSeatController.deleteSeat);
 
-  //payment
+  //invoice
+  router.get("/api/v1/invoice/:id", invoiceController.downloadInvoice);
+
+  //bookingPayment
+  router.get(
+    "/api/v1/bookings/payments/all",
+    bookingPaymentController.getAllPayments
+  );
   router.post(
     "/api/v1/bookings/payments",
     bookingPaymentController.createPayment
@@ -125,9 +150,33 @@ let initWebRoutes = (app) => {
     bookingPaymentController.updatePaymentStatus
   );
 
+  // Vehicle
+  router.get("/api/v1/vehicles", vehicleController.getAllVehicles);
+  router.get("/api/v1/vehicles/:id", vehicleController.getVehicleById);
+  router.post("/api/v1/vehicles", vehicleController.createVehicle);
+  router.put("/api/v1/vehicles/:id", vehicleController.updateVehicle);
+  router.delete("/api/v1/vehicles/:id", vehicleController.deleteVehicle);
+
+  // tripPrice
+  router.get("/api/v1/trip-prices", tripPriceController.getAllTripPrices);
+  router.get("/api/v1/trip-prices/:id", tripPriceController.getTripPriceById);
+  router.post("/api/v1/trip-prices", tripPriceController.createTripPrice);
+  router.put("/api/v1/trip-prices/:id", tripPriceController.updateTripPrice);
+  router.delete("/api/v1/trip-prices/:id", tripPriceController.deleteTripPrice);
+
   router.post(
     "/api/v1/payments/create-banking-qr",
     paymentController.createBankingQR
+  );
+
+  router.get("/api/v1/reports/revenue", reportController.getRevenueReport);
+  router.get(
+    "/api/v1/reports/ticket-sales",
+    reportController.getTicketSalesReport
+  );
+  router.get(
+    "/api/v1/reports/cancellation-rate",
+    reportController.getCancellationRateReport
   );
 
   // News

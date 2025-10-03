@@ -2,20 +2,23 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class CoachTrip extends Model {
+  class CoachSchedule extends Model {
     static associate(models) {
+      // mỗi lịch trình thuộc về 1 tuyến
       this.belongsTo(models.CoachRoute, {
         foreignKey: "coachRouteId",
         as: "route",
         onDelete: "CASCADE",
       });
 
+      // mỗi lịch trình gắn với 1 xe
       this.belongsTo(models.Vehicle, {
         foreignKey: "vehicleId",
         as: "vehicle",
         onDelete: "CASCADE",
       });
 
+      // mỗi lịch trình gắn với 1 giá vé
       this.belongsTo(models.TripPrices, {
         foreignKey: "tripPriceId",
         as: "price",
@@ -24,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  CoachTrip.init(
+  CoachSchedule.init(
     {
       coachRouteId: {
         type: DataTypes.INTEGER,
@@ -36,31 +39,38 @@ module.exports = (sequelize, DataTypes) => {
       },
       tripPriceId: {
         type: DataTypes.INTEGER,
-        allowNull: false, // bắt buộc phải gắn với 1 price
-      },
-      startDate: {
-        type: DataTypes.DATEONLY,
         allowNull: false,
       },
       startTime: {
         type: DataTypes.TIME,
         allowNull: false,
       },
+      frequency: {
+        type: DataTypes.ENUM("DAILY", "WEEKLY"),
+        allowNull: false,
+        defaultValue: "DAILY",
+      },
+      daysOfWeek: {
+        type: DataTypes.STRING, // ví dụ: "1,3,5" => chạy thứ 2-4-6
+        allowNull: true,
+      },
+
       totalTime: {
-        type: DataTypes.TIME,
+        // ✅ thêm trường mới
+        type: DataTypes.TIME, // tính bằng phút (hoặc giờ tuỳ bạn)
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM("OPEN", "FULL", "CANCELLED"),
-        defaultValue: "OPEN",
+        type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
+        defaultValue: "ACTIVE",
       },
     },
     {
       sequelize,
-      modelName: "CoachTrip",
-      tableName: "coach_trips",
+      modelName: "CoachSchedule",
+      tableName: "coach_schedules",
     }
   );
 
-  return CoachTrip;
+  return CoachSchedule;
 };
