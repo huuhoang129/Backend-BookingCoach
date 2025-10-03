@@ -22,10 +22,19 @@ import scheduleController from "../controllers/tripManageController/scheduleCont
 import reportController from "../controllers/reportManageController/reportController";
 import invoiceController from "../controllers/paymentManageController/invoiceController";
 import { uploadFile } from "../controllers/uploadController.js";
+import {
+  vnpayCreatePayment,
+  vnpayReturn,
+  vnpayIPN,
+} from "../controllers/paymentManageController/vnpayController";
 
 let router = express.Router();
 
 let initWebRoutes = (app) => {
+  router.post("/api/v1/payments/vnpay", vnpayCreatePayment);
+  router.get("/api/v1/payments/vnpay_return", vnpayReturn);
+  router.get("/api/v1/payments/vnpay_ipn", vnpayIPN);
+
   router.post("/api/v1/upload/:folder", uploadFile);
   // Banner
   router.get("/api/v1/get-banner", bannerController.getAllBanners);
