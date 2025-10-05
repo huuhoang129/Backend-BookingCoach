@@ -113,6 +113,7 @@ let createBooking = async (data) => {
     }
 
     const bookingCode = generateBookingCode();
+    const expireAt = new Date(Date.now() + 10 * 60 * 1000);
     const newBooking = await db.Bookings.create(
       {
         userId: data.userId || null,
@@ -120,6 +121,7 @@ let createBooking = async (data) => {
         status: "PENDING",
         totalAmount: data.totalAmount,
         bookingCode,
+        expiredAt: expireAt,
       },
       { transaction: t }
     );

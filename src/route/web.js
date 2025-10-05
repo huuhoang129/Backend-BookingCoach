@@ -29,12 +29,20 @@ import {
   vnpayIPN,
 } from "../controllers/paymentManageController/vnpayController";
 
+import {
+  createMoMoPaymentController,
+  handleMoMoIPNController,
+} from "../controllers/paymentManageController/momoController";
+
 let router = express.Router();
 
 let initWebRoutes = (app) => {
   router.post("/api/v1/payments/vnpay", vnpayCreatePayment);
   router.get("/api/v1/payments/vnpay_return", vnpayReturn);
   router.get("/api/v1/payments/vnpay_ipn", vnpayIPN);
+
+  router.post("/api/v1/payment/momo", createMoMoPaymentController);
+  router.post("/api/v1/payment/ipn/momo", handleMoMoIPNController);
 
   router.post("/api/v1/upload/:folder", uploadFile);
   // Banner

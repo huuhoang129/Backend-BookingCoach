@@ -51,12 +51,16 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("PENDING", "CONFIRMED", "CANCELLED"),
+        type: DataTypes.ENUM("PENDING", "CONFIRMED", "CANCELLED", "EXPIRED"),
         defaultValue: "PENDING",
       },
       totalAmount: {
         type: DataTypes.DECIMAL(12, 0),
         allowNull: false,
+      },
+      expiredAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
     },
     {
