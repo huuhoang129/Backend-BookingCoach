@@ -13,6 +13,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "seatId",
         as: "seat",
       });
+
+      this.belongsTo(models.CoachTrip, {
+        foreignKey: "tripId",
+        as: "trip",
+      });
     }
   }
 
@@ -26,9 +31,18 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      price: {
+      tripId: {
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      price: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+      },
+      status: {
+        type: DataTypes.ENUM("HOLD", "SOLD", "CANCELLED"),
+        allowNull: false,
+        defaultValue: "HOLD",
       },
     },
     {

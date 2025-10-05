@@ -3,7 +3,7 @@ import paymentService from "../bookingManageServices/bookingPaymentService.js";
 
 let getAllBookings = async () => {
   try {
-    let bookings = await db.Bookings.findAll({
+    const bookings = await db.Bookings.findAll({
       include: [
         { model: db.BookingCustomers, as: "customers" },
         {
@@ -11,7 +11,11 @@ let getAllBookings = async () => {
           as: "points",
           include: [{ model: db.Location, as: "Location" }],
         },
-        { model: db.BookingSeats, as: "seats" },
+        {
+          model: db.BookingSeats,
+          as: "seats",
+          include: [{ model: db.Seat, as: "seat" }], // ✅ include seat info
+        },
         { model: db.BookingPayments, as: "payment" },
         {
           model: db.CoachTrip,
@@ -49,7 +53,7 @@ let getBookingById = async (bookingId) => {
       };
     }
 
-    let booking = await db.Bookings.findOne({
+    const booking = await db.Bookings.findOne({
       where: { id: bookingId },
       include: [
         { model: db.BookingCustomers, as: "customers" },
@@ -58,7 +62,11 @@ let getBookingById = async (bookingId) => {
           as: "points",
           include: [{ model: db.Location, as: "Location" }],
         },
-        { model: db.BookingSeats, as: "seats" },
+        {
+          model: db.BookingSeats,
+          as: "seats",
+          include: [{ model: db.Seat, as: "seat" }],
+        },
         { model: db.BookingPayments, as: "payment" },
         {
           model: db.CoachTrip,
@@ -79,9 +87,8 @@ let getBookingById = async (bookingId) => {
       nest: true,
     });
 
-    if (!booking) {
+    if (!booking)
       return { errCode: 2, errMessage: "Booking not found", data: null };
-    }
 
     return { errCode: 0, errMessage: "OK", data: booking };
   } catch (e) {
@@ -105,10 +112,7 @@ let createBooking = async (data) => {
       return { errCode: 1, errMessage: "Missing required parameters" };
     }
 
-    // 🔥 Generate bookingCode
     const bookingCode = generateBookingCode();
-
-    // 1. Booking
     const newBooking = await db.Bookings.create(
       {
         userId: data.userId || null,
@@ -120,7 +124,6 @@ let createBooking = async (data) => {
       { transaction: t }
     );
 
-    // 2. Customers
     if (data.customers?.length > 0) {
       await db.BookingCustomers.bulkCreate(
         data.customers.map((c) => ({
@@ -133,7 +136,6 @@ let createBooking = async (data) => {
       );
     }
 
-    // 3. Points
     if (data.points?.length > 0) {
       await db.BookingPoints.bulkCreate(
         data.points.map((p) => ({
@@ -147,22 +149,27 @@ let createBooking = async (data) => {
       );
     }
 
-    // 4. Seats
     if (data.seats?.length > 0) {
       for (let s of data.seats) {
-        const seat = await db.Seat.findOne({
-          where: { id: s.seatId },
-          transaction: t,
-        });
+        const seat = await db.Seat.findByPk(s.seatId, { transaction: t });
         if (!seat) {
           await t.rollback();
           return { errCode: 2, errMessage: `Seat ${s.seatId} not found` };
         }
-        if (seat.status !== "AVAILABLE") {
+
+        const existing = await db.BookingSeats.findOne({
+          where: {
+            seatId: s.seatId,
+            tripId: data.coachTripId,
+            status: ["HOLD", "SOLD"],
+          },
+          transaction: t,
+        });
+        if (existing) {
           await t.rollback();
           return {
             errCode: 3,
-            errMessage: `Seat ${s.seatId} is not available`,
+            errMessage: `Seat ${seat.name} has already been booked for this trip.`,
           };
         }
 
@@ -170,19 +177,15 @@ let createBooking = async (data) => {
           {
             bookingId: newBooking.id,
             seatId: s.seatId,
+            tripId: data.coachTripId,
             price: s.price,
+            status: "HOLD",
           },
           { transaction: t }
-        );
-
-        await db.Seat.update(
-          { status: "HOLD" },
-          { where: { id: s.seatId }, transaction: t }
         );
       }
     }
 
-    // 5. Payment (CASH)
     if (data.paymentMethod === "CASH") {
       await paymentService.createPayment(
         {
@@ -213,10 +216,7 @@ let updateBookingStatus = async (bookingId, status) => {
       return { errCode: 1, errMessage: "Missing required parameters" };
     }
 
-    const booking = await db.Bookings.findOne({
-      where: { id: bookingId },
-      transaction: t,
-    });
+    const booking = await db.Bookings.findByPk(bookingId, { transaction: t });
     if (!booking) {
       await t.rollback();
       return { errCode: 2, errMessage: "Booking not found" };
@@ -227,7 +227,7 @@ let updateBookingStatus = async (bookingId, status) => {
       { where: { id: bookingId }, transaction: t }
     );
 
-    // Sync seat status
+    // Cập nhật trạng thái ghế trong bảng BookingSeats
     const bookingSeats = await db.BookingSeats.findAll({
       where: { bookingId },
       transaction: t,
@@ -235,17 +235,11 @@ let updateBookingStatus = async (bookingId, status) => {
 
     if (status === "CONFIRMED") {
       for (let bs of bookingSeats) {
-        await db.Seat.update(
-          { status: "SOLD" },
-          { where: { id: bs.seatId }, transaction: t }
-        );
+        await bs.update({ status: "SOLD" }, { transaction: t });
       }
     } else if (status === "CANCELLED") {
       for (let bs of bookingSeats) {
-        await db.Seat.update(
-          { status: "AVAILABLE" },
-          { where: { id: bs.seatId }, transaction: t }
-        );
+        await bs.update({ status: "CANCELLED" }, { transaction: t });
       }
     }
 
@@ -257,13 +251,10 @@ let updateBookingStatus = async (bookingId, status) => {
   }
 };
 
-/**
- * Xoá booking
- */
 let deleteBooking = async (bookingId) => {
   const t = await db.sequelize.transaction();
   try {
-    const booking = await db.Bookings.findOne({ where: { id: bookingId } });
+    const booking = await db.Bookings.findByPk(bookingId);
     if (!booking) {
       return { errCode: 2, errMessage: "Booking doesn't exist" };
     }

@@ -14,6 +14,11 @@ module.exports = (sequelize, DataTypes) => {
         as: "trips",
         onDelete: "CASCADE",
       });
+      this.hasOne(models.VehicleStatus, {
+        foreignKey: "vehicleId",
+        as: "status",
+        onDelete: "CASCADE",
+      });
     }
   }
 

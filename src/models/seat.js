@@ -19,10 +19,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      status: {
-        type: DataTypes.ENUM("available", "selected", "sold"),
-        defaultValue: "available",
-      },
       floor: {
         type: DataTypes.INTEGER,
         allowNull: false,

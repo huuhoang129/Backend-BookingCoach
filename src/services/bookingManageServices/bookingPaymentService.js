@@ -3,7 +3,7 @@ import emailServices from "../emailServices.js";
 
 let getAllPayments = async () => {
   try {
-    let payments = await db.BookingPayments.findAll({
+    const payments = await db.BookingPayments.findAll({
       include: [
         {
           model: db.Bookings,
@@ -22,6 +22,7 @@ let getAllPayments = async () => {
   }
 };
 
+// 🔹 Tạo payment mới
 let createPayment = async (data, t) => {
   const payment = await db.BookingPayments.create(
     {
@@ -35,32 +36,30 @@ let createPayment = async (data, t) => {
     { transaction: t }
   );
 
-  // Nếu thanh toán tiền mặt hoặc banking → xác nhận ngay + giữ ghế
+  // Nếu thanh toán tiền mặt hoặc banking → xác nhận ngay
   if (["CASH", "BANKING"].includes(data.method)) {
     await db.Bookings.update(
       { status: "CONFIRMED" },
       { where: { id: data.bookingId }, transaction: t }
     );
 
-    const bookingSeats = await db.BookingSeats.findAll({
-      where: { bookingId: data.bookingId },
-      transaction: t,
-    });
-
-    for (let bs of bookingSeats) {
-      await db.Seat.update(
-        { status: "SOLD" },
-        { where: { id: bs.seatId }, transaction: t }
-      );
-    }
+    // ✅ Update BookingSeats thay vì Seat
+    await db.BookingSeats.update(
+      { status: "SOLD" },
+      { where: { bookingId: data.bookingId }, transaction: t }
+    );
   }
 
-  return payment;
+  return {
+    errCode: 0,
+    errMessage: "Payment created successfully",
+    data: payment,
+  };
 };
 
 let getPaymentByBooking = async (bookingId) => {
   try {
-    let payment = await db.BookingPayments.findAll({
+    const payment = await db.BookingPayments.findAll({
       where: { bookingId },
       raw: true,
     });
@@ -71,6 +70,7 @@ let getPaymentByBooking = async (bookingId) => {
   }
 };
 
+// 🔹 Cập nhật trạng thái payment (SUCCESS / FAILED)
 let updatePaymentStatus = async (data) => {
   const t = await db.sequelize.transaction();
   try {
@@ -78,7 +78,6 @@ let updatePaymentStatus = async (data) => {
       return { errCode: 1, errMessage: "Missing required parameters" };
     }
 
-    // Tìm payment
     const payment = await db.BookingPayments.findOne({
       where: { id: data.paymentId },
       transaction: t,
@@ -88,7 +87,7 @@ let updatePaymentStatus = async (data) => {
       return { errCode: 2, errMessage: "Payment not found" };
     }
 
-    // Update trạng thái payment
+    // Cập nhật trạng thái payment
     await db.BookingPayments.update(
       {
         status: data.status,
@@ -98,27 +97,20 @@ let updatePaymentStatus = async (data) => {
       { where: { id: data.paymentId }, transaction: t }
     );
 
-    // ❌ Nếu FAILED → hủy booking + trả ghế
+    // ❌ FAILED → hủy booking + đánh dấu ghế CANCELLED
     if (data.status === "FAILED") {
       await db.Bookings.update(
         { status: "CANCELLED" },
         { where: { id: payment.bookingId }, transaction: t }
       );
 
-      const bookingSeats = await db.BookingSeats.findAll({
-        where: { bookingId: payment.bookingId },
-        transaction: t,
-      });
-
-      for (let bs of bookingSeats) {
-        await db.Seat.update(
-          { status: "AVAILABLE" },
-          { where: { id: bs.seatId }, transaction: t }
-        );
-      }
+      await db.BookingSeats.update(
+        { status: "CANCELLED" },
+        { where: { bookingId: payment.bookingId }, transaction: t }
+      );
     }
 
-    // ✅ Nếu SUCCESS → xác nhận + giữ ghế + gửi email
+    // ✅ SUCCESS → xác nhận + update ghế + gửi email
     if (data.status === "SUCCESS") {
       const booking = await db.Bookings.findOne({
         where: { id: payment.bookingId },
@@ -156,17 +148,13 @@ let updatePaymentStatus = async (data) => {
         { where: { id: payment.bookingId }, transaction: t }
       );
 
-      const bookingSeats = await db.BookingSeats.findAll({
-        where: { bookingId: payment.bookingId },
-        transaction: t,
-      });
-      for (let bs of bookingSeats) {
-        await db.Seat.update(
-          { status: "SOLD" },
-          { where: { id: bs.seatId }, transaction: t }
-        );
-      }
+      // ✅ Update trạng thái ghế sang SOLD
+      await db.BookingSeats.update(
+        { status: "SOLD" },
+        { where: { bookingId: payment.bookingId }, transaction: t }
+      );
 
+      // ✅ Gửi email xác nhận
       const mainCustomer = booking.customers?.[0];
       if (mainCustomer?.email) {
         const pickup = booking.points.find((p) => p.type === "PICKUP");

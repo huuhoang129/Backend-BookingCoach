@@ -21,6 +21,7 @@ import tripPriceController from "../controllers/tripManageController/tripPriceCo
 import scheduleController from "../controllers/tripManageController/scheduleController";
 import reportController from "../controllers/reportManageController/reportController";
 import invoiceController from "../controllers/paymentManageController/invoiceController";
+import vehicleStatusController from "../controllers/vehicleManageController/vehicleStatusController";
 import { uploadFile } from "../controllers/uploadController.js";
 import {
   vnpayCreatePayment,
@@ -165,6 +166,24 @@ let initWebRoutes = (app) => {
   router.post("/api/v1/vehicles", vehicleController.createVehicle);
   router.put("/api/v1/vehicles/:id", vehicleController.updateVehicle);
   router.delete("/api/v1/vehicles/:id", vehicleController.deleteVehicle);
+
+  // Vehicle Status
+  router.get(
+    "/api/v1/vehicle-status",
+    vehicleStatusController.getAllVehicleStatus
+  );
+  router.get(
+    "/api/v1/vehicle-status/:vehicleId",
+    vehicleStatusController.getStatusByVehicleId
+  );
+  router.post(
+    "/api/v1/vehicle-status",
+    vehicleStatusController.updateVehicleStatus
+  );
+  router.delete(
+    "/api/v1/vehicle-status/:vehicleId",
+    vehicleStatusController.deleteVehicleStatus
+  );
 
   // tripPrice
   router.get("/api/v1/trip-prices", tripPriceController.getAllTripPrices);

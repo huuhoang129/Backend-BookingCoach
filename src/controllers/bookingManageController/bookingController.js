@@ -32,10 +32,14 @@ let getBookingById = async (req, res) => {
 let createBooking = async (req, res) => {
   try {
     let data = req.body;
+
+    console.log("📦 [Controller] Body nhận từ frontend:", data);
+    console.log("💳 [Controller] paymentMethod =", data.paymentMethod);
+
     let result = await bookingService.createBooking(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("createBooking error:", e);
+    console.error("❌ createBooking error:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Error from server",
