@@ -149,7 +149,6 @@ let deleteTrip = async (tripId) => {
   }
 };
 
-// ✅ Tìm trip theo route + khoảng ngày (đã sửa logic SEAT)
 let findTripsByRouteAndDate = async (
   fromLocationId,
   toLocationId,

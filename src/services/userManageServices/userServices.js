@@ -7,7 +7,7 @@ let getAllUsers = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let users = await db.User.findAll({
-        where: { role: "Client" }, // 👈 lọc theo role
+        where: { role: "Client" },
         attributes: { exclude: ["password"] },
       });
       resolve({
@@ -31,7 +31,7 @@ let getUserById = (inputId) => {
         });
       } else {
         let user = await db.User.findOne({
-          where: { id: inputId, role: "Client" }, // 👈 chỉ lấy Client
+          where: { id: inputId, role: "Client" },
           attributes: { exclude: ["password"] },
           raw: true,
         });

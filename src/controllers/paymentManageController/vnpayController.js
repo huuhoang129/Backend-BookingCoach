@@ -32,7 +32,7 @@ export const vnpayCreatePayment = async (req, res) => {
 export const vnpayReturn = async (req, res) => {
   const result = await handleVNPayReturn({ ...req.query });
   return res.redirect(
-    `http://localhost:3000/payment-result?code=${result.code}`
+    `http://localhost:5173/payment-result?code=${result.code}`
   );
 };
 

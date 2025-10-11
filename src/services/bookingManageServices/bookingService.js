@@ -1,9 +1,12 @@
 import db from "../../models/index.js";
 import paymentService from "../bookingManageServices/bookingPaymentService.js";
 
-let getAllBookings = async () => {
+let getAllBookings = async (userId = null) => {
   try {
+    const whereCondition = userId ? { userId } : {};
+
     const bookings = await db.Bookings.findAll({
+      where: whereCondition,
       include: [
         { model: db.BookingCustomers, as: "customers" },
         {
@@ -14,12 +17,23 @@ let getAllBookings = async () => {
         {
           model: db.BookingSeats,
           as: "seats",
-          include: [{ model: db.Seat, as: "seat" }], // ✅ include seat info
+          include: [{ model: db.Seat, as: "seat" }],
         },
-        { model: db.BookingPayments, as: "payment" },
+        {
+          model: db.BookingPayments,
+          as: "payment",
+          attributes: [
+            "method",
+            "status",
+            "amount",
+            "transactionCode",
+            "paidAt",
+          ],
+        },
         {
           model: db.CoachTrip,
           as: "trip",
+          attributes: ["id", "startDate", "startTime", "vehicleId"],
           include: [
             {
               model: db.CoachRoute,
@@ -28,6 +42,11 @@ let getAllBookings = async () => {
                 { model: db.Location, as: "fromLocation" },
                 { model: db.Location, as: "toLocation" },
               ],
+            },
+            {
+              model: db.Vehicle,
+              as: "vehicle",
+              attributes: ["type", "licensePlate", "name"],
             },
           ],
         },
@@ -39,6 +58,7 @@ let getAllBookings = async () => {
 
     return { errCode: 0, errMessage: "OK", data: bookings };
   } catch (e) {
+    console.error("❌ getAllBookings error:", e);
     throw e;
   }
 };

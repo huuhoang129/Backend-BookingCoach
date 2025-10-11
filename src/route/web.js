@@ -22,6 +22,7 @@ import scheduleController from "../controllers/tripManageController/scheduleCont
 import reportController from "../controllers/reportManageController/reportController";
 import invoiceController from "../controllers/paymentManageController/invoiceController";
 import vehicleStatusController from "../controllers/vehicleManageController/vehicleStatusController";
+import driverScheduleController from "../controllers/vehicleManageController/driverScheduleController.js";
 import { uploadFile } from "../controllers/uploadController.js";
 import {
   vnpayCreatePayment,
@@ -148,7 +149,7 @@ let initWebRoutes = (app) => {
   router.delete("/api/v1/bookings/seats/:id", bookingSeatController.deleteSeat);
 
   //invoice
-  router.get("/api/v1/invoice/:id", invoiceController.downloadInvoice);
+  router.get("/api/v1/bookings/:id/invoice", invoiceController.downloadInvoice);
 
   //bookingPayment
   router.get(
@@ -192,6 +193,30 @@ let initWebRoutes = (app) => {
     "/api/v1/vehicle-status/:vehicleId",
     vehicleStatusController.deleteVehicleStatus
   );
+
+  //driverSchedule
+  router.get(
+    "/api/v1/driver-schedules",
+    driverScheduleController.getAllDriverSchedules
+  );
+  router.get(
+    "/api/v1/driver-schedules/:id",
+    driverScheduleController.getDriverScheduleById
+  );
+  router.post(
+    "/api/v1/driver-schedules",
+    driverScheduleController.createDriverSchedule
+  );
+  router.put(
+    "/api/v1/driver-schedules",
+    driverScheduleController.updateDriverSchedule
+  );
+  router.delete(
+    "/api/v1/driver-schedules/:id",
+    driverScheduleController.deleteDriverSchedule
+  );
+
+  router.get("/api/v1/drivers/all", driverScheduleController.getAllDrivers);
 
   // tripPrice
   router.get("/api/v1/trip-prices", tripPriceController.getAllTripPrices);

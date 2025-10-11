@@ -2,16 +2,14 @@ import bookingService from "../../services/bookingManageServices/bookingService"
 import { generateInvoice } from "../../services/paymentManageService/invoiceService.js";
 import db from "../../models/index.js";
 
-let getAllBookings = async (req, res) => {
+const getAllBookings = async (req, res) => {
   try {
-    let result = await bookingService.getAllBookings();
+    const userId = req.query.userId || null;
+    const result = await bookingService.getAllBookings(userId);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getAllBookings error:", e);
-    return res.status(500).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
+    console.error("❌ getAllBookings Controller error:", e);
+    return res.status(500).json({ errCode: 1, errMessage: "Server error" });
   }
 };
 
