@@ -87,7 +87,7 @@ let createUser = (data) => {
       if (existingUser) {
         return resolve({
           errCode: 2,
-          errMessage: "Email is already in use!",
+          errMessage: "Email đã tồn tại trong hệ thống!",
         });
       }
 

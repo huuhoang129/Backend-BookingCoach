@@ -32,8 +32,8 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM("stopPoint", "station"),
-        defaultValue: "stopPoint",
+        type: DataTypes.ENUM("STOP_POINT", "STATION"),
+        defaultValue: "STOP_POINT",
       },
       provinceId: {
         type: DataTypes.INTEGER,

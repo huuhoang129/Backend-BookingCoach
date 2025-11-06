@@ -110,7 +110,6 @@ let updatePaymentStatus = async (data) => {
       );
     }
 
-    // ✅ SUCCESS → xác nhận + update ghế + gửi email
     if (data.status === "SUCCESS") {
       const booking = await db.Bookings.findOne({
         where: { id: payment.bookingId },

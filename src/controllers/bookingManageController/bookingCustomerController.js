@@ -1,54 +1,75 @@
 import bookingCustomerService from "../../services/bookingManageServices/bookingCustomerService.js";
 
-let getCustomersByBooking = async (req, res) => {
+/**
+ * Lấy danh sách khách hàng
+ */
+const getCustomersByBooking = async (req, res) => {
   try {
-    let bookingId = req.params.bookingId;
-    let result = await bookingCustomerService.getCustomersByBooking(bookingId);
+    const bookingId = req.params.bookingId;
+    const result = await bookingCustomerService.getCustomersByBooking(
+      bookingId
+    );
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getCustomersByBooking error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error(
+      "BookingCustomerController - getCustomersByBooking error:",
+      e
+    );
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let addCustomer = async (req, res) => {
+/**
+ * Thêm khách hàng vào booking
+ */
+const addCustomer = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await bookingCustomerService.addCustomer(data);
+    const data = req.body;
+    const result = await bookingCustomerService.addCustomer(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("addCustomer error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingCustomerController - addCustomer error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let updateCustomer = async (req, res) => {
+/**
+ * Cập nhật thông tin khách hàng
+ */
+const updateCustomer = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await bookingCustomerService.updateCustomer(data);
+    const data = req.body;
+    const result = await bookingCustomerService.updateCustomer(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("updateCustomer error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingCustomerController - updateCustomer error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let deleteCustomer = async (req, res) => {
+/**
+ * Xóa khách hàng
+ */
+const deleteCustomer = async (req, res) => {
   try {
-    let id = req.params.id;
-    let result = await bookingCustomerService.deleteCustomer(id);
+    const id = req.params.id;
+    const result = await bookingCustomerService.deleteCustomer(id);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("deleteCustomer error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingCustomerController - deleteCustomer error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 

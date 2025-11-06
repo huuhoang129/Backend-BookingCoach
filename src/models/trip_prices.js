@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       seatType: {
-        type: DataTypes.ENUM("SEAT", "SLEEPER", "DOUBLESLEEPER", "LIMOUSINE"),
+        type: DataTypes.ENUM("NORMAL", "SLEEPER", "DOUBLESLEEPER", "LIMOUSINE"),
         allowNull: false,
       },
       priceTrip: {

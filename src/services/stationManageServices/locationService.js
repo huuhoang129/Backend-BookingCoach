@@ -1,7 +1,5 @@
 import db from "../../models/index.js";
 
-// ==================== PROVINCES ====================
-
 let getAllProvinces = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -60,7 +58,6 @@ let createProvince = (data) => {
         });
       }
 
-      // generate code: lấy chữ cái đầu viết hoa
       const code = data.nameProvince
         .split(" ")
         .map((word) => word[0]?.toUpperCase())
@@ -99,7 +96,6 @@ let updateProvince = (id, data) => {
         });
       }
 
-      // generate lại code khi đổi tên
       const code = data.nameProvince
         .split(" ")
         .map((word) => word[0]?.toUpperCase())
@@ -145,8 +141,6 @@ let deleteProvince = (provinceId) => {
     }
   });
 };
-
-// ==================== LOCATIONS ====================
 
 let getAllLocations = () => {
   return new Promise(async (resolve, reject) => {
@@ -282,10 +276,10 @@ let getAllProvincesWithLocationsTree = () => {
       });
 
       let data = provinces.map((province) => ({
-        value: province.valueProvince, // 👈 lấy code HN, QN, ...
+        value: province.valueProvince,
         label: province.nameProvince,
         children: province.locations.map((loc) => ({
-          value: loc.id.toString(), // location vẫn để id
+          value: loc.id.toString(),
           label: loc.nameLocations,
         })),
       }));

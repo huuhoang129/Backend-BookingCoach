@@ -80,7 +80,6 @@ let getTripPriceById = (id) => {
   });
 };
 
-// Tạo mới TripPrice
 let createTripPrice = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -92,10 +91,27 @@ let createTripPrice = (data) => {
       ) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
+      const existing = await db.TripPrices.findOne({
+        where: {
+          coachRouteId: data.coachRouteId,
+          seatType: data.seatType,
+          typeTrip: data.typeTrip,
+        },
+      });
+
+      if (existing) {
+        return resolve({
+          errCode: 2,
+          errMessage:
+            "Giá vé cho tuyến, loại ghế và loại chuyến này đã tồn tại!",
+        });
+      }
+
+      // 🟢 Tạo mới nếu chưa có
       await db.TripPrices.create({
         coachRouteId: data.coachRouteId,
         seatType: data.seatType,
@@ -105,7 +121,7 @@ let createTripPrice = (data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "TripPrice created successfully",
+        errMessage: "Tạo giá vé thành công",
       });
     } catch (e) {
       reject(e);

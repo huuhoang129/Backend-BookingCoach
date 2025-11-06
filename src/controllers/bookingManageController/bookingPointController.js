@@ -1,54 +1,70 @@
 import bookingPointService from "../../services/bookingManageServices/bookingPointService.js";
 
-let getPointsByBooking = async (req, res) => {
+/**
+ * Lấy danh sách điểm đón/trả
+ */
+const getPointsByBooking = async (req, res) => {
   try {
-    let bookingId = req.params.bookingId;
-    let result = await bookingPointService.getPointsByBooking(bookingId);
+    const bookingId = req.params.bookingId;
+    const result = await bookingPointService.getPointsByBooking(bookingId);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getPointsByBooking error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingPointController - getPointsByBooking error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let addPoint = async (req, res) => {
+/**
+ * Thêm điểm đón/trả
+ */
+const addPoint = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await bookingPointService.addPoint(data);
+    const data = req.body;
+    const result = await bookingPointService.addPoint(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("addPoint error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingPointController - addPoint error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let updatePoint = async (req, res) => {
+/**
+ * Cập nhật điểm đón/trả
+ */
+const updatePoint = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await bookingPointService.updatePoint(data);
+    const data = req.body;
+    const result = await bookingPointService.updatePoint(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("updatePoint error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingPointController - updatePoint error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let deletePoint = async (req, res) => {
+/**
+ * Xóa điểm đón/trả
+ */
+const deletePoint = async (req, res) => {
   try {
-    let id = req.params.id;
-    let result = await bookingPointService.deletePoint(id);
+    const id = req.params.id;
+    const result = await bookingPointService.deletePoint(id);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("deletePoint error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingPointController - deletePoint error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 

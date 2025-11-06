@@ -1,20 +1,23 @@
 import { getInvoiceFile } from "../../services/paymentManageService/invoiceService.js";
 
-let downloadInvoice = async (req, res) => {
+/**
+ * Tải hóa đơn PDF theo bookingId
+ */
+const downloadInvoice = async (req, res) => {
   try {
-    const result = await getInvoiceFile(req.params.id);
-
+    const bookingId = req.params.id;
+    const result = await getInvoiceFile(bookingId); // Lấy hóa đơn từ service
     if (result.errCode === 1) {
       return res.status(404).send(result.errMessage);
     }
     if (result.errCode !== 0) {
       return res.status(500).send(result.errMessage);
     }
-
-    res.download(result.filePath, `Hóa đơn vé xe-${req.params.id}.pdf`);
+    // Tải file PDF
+    return res.download(result.filePath, `Hoa-don-ve-xe-${bookingId}.pdf`);
   } catch (e) {
-    console.error("downloadInvoice error:", e);
-    res.status(500).send("Internal server error");
+    console.error("InvoiceController - downloadInvoice error:", e);
+    return res.status(500).send("Lỗi hệ thống");
   }
 };
 

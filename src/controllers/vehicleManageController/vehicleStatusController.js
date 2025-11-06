@@ -54,14 +54,14 @@ let updateVehicleStatus = async (req, res) => {
 ========================== */
 let deleteVehicleStatus = async (req, res) => {
   try {
-    const { vehicleId } = req.params;
-    const result = await vehicleStatusService.deleteVehicleStatus(vehicleId);
-    return res.status(200).json(result);
+    const { id } = req.params;
+    const result = await vehicleStatusService.deleteVehicleStatus(id);
+    return res.json(result);
   } catch (e) {
+    console.error("❌ deleteVehicleStatus error:", e);
     return res.status(500).json({
-      errCode: -1,
-      errMessage: "Error from server",
-      error: e.message,
+      errCode: 99,
+      errMessage: "Server error",
     });
   }
 };

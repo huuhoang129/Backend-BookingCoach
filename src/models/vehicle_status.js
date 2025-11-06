@@ -16,7 +16,6 @@ module.exports = (sequelize, DataTypes) => {
       vehicleId: DataTypes.INTEGER,
       status: DataTypes.ENUM("GOOD", "NEEDS_MAINTENANCE", "IN_REPAIR"),
       note: DataTypes.TEXT,
-      lastUpdated: DataTypes.DATE,
     },
     {
       sequelize,

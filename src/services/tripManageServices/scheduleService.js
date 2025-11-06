@@ -183,6 +183,7 @@ let generateTripsFromSchedules = () => {
             tripPriceId: s.tripPriceId,
             startDate: date,
             startTime: s.startTime,
+            totalTime: s.totalTime,
             status: "OPEN",
           });
         }

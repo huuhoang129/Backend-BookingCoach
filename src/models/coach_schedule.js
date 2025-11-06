@@ -51,13 +51,12 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: "DAILY",
       },
       daysOfWeek: {
-        type: DataTypes.STRING, // ví dụ: "1,3,5" => chạy thứ 2-4-6
+        type: DataTypes.STRING,
         allowNull: true,
       },
 
       totalTime: {
-        // ✅ thêm trường mới
-        type: DataTypes.TIME, // tính bằng phút (hoặc giờ tuỳ bạn)
+        type: DataTypes.TIME,
         allowNull: true,
       },
       status: {

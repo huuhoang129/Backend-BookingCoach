@@ -1,54 +1,70 @@
 import bookingSeatService from "../../services/bookingManageServices/bookingSeatService.js";
 
-let getSeatsByBooking = async (req, res) => {
+/**
+ * Lấy danh sách ghế
+ */
+const getSeatsByBooking = async (req, res) => {
   try {
-    let bookingId = req.params.bookingId;
-    let result = await bookingSeatService.getSeatsByBooking(bookingId);
+    const bookingId = req.params.bookingId;
+    const result = await bookingSeatService.getSeatsByBooking(bookingId);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getSeatsByBooking error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingSeatController - getSeatsByBooking error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let addSeat = async (req, res) => {
+/**
+ * Thêm ghế
+ */
+const addSeat = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await bookingSeatService.addSeat(data);
+    const data = req.body;
+    const result = await bookingSeatService.addSeat(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("addSeat error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingSeatController - addSeat error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let updateSeat = async (req, res) => {
+/**
+ * Cập nhật thông tin ghế
+ */
+const updateSeat = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await bookingSeatService.updateSeat(data);
+    const data = req.body;
+    const result = await bookingSeatService.updateSeat(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("updateSeat error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingSeatController - updateSeat error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
-let deleteSeat = async (req, res) => {
+/**
+ * Xóa ghế
+ */
+const deleteSeat = async (req, res) => {
   try {
-    let id = req.params.id;
-    let result = await bookingSeatService.deleteSeat(id);
+    const id = req.params.id;
+    const result = await bookingSeatService.deleteSeat(id);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("deleteSeat error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("BookingSeatController - deleteSeat error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 

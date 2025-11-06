@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       tripPriceId: {
         type: DataTypes.INTEGER,
-        allowNull: false, // bắt buộc phải gắn với 1 price
+        allowNull: false,
       },
       startDate: {
         type: DataTypes.DATEONLY,
