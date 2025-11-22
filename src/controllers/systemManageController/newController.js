@@ -1,68 +1,76 @@
+// src/controllers/systemManageController/newController.js
 import newsService from "../../services/systemManageServices/newServices";
 
+// Lấy danh sách tất cả tin tức
 let getAllNews = async (req, res) => {
   try {
-    let result = await newsService.getAllNews();
+    const result = await newsService.getAllNews();
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getAllNews error:", e);
+    console.error("Lỗi khi lấy danh sách tin tức:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+// Lấy thông tin tin tức theo ID
 let getNewsById = async (req, res) => {
   try {
-    let newsId = req.params.id;
-    let result = await newsService.getNewsById(newsId);
+    const newsId = req.params.id;
+    const result = await newsService.getNewsById(newsId);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getNewsById error:", e);
+    console.error("Lỗi khi lấy tin tức theo ID:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+// Tạo mới tin tức
 let createNews = async (req, res) => {
   try {
-    let result = await newsService.createNews(req.body);
+    const result = await newsService.createNews(req.body);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("createNews error:", e);
+    console.error("Lỗi khi tạo tin tức:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+// Tạo mới tin tức
 let updateNews = async (req, res) => {
   try {
-    let result = await newsService.updateNews(req.body);
+    const result = await newsService.updateNews(req.body);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("updateNews error:", e);
+    console.error("Lỗi khi cập nhật tin tức:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+/**
+ * Xóa tin tức
+ */
 let deleteNews = async (req, res) => {
   try {
-    let newsId = req.params.id;
-    let result = await newsService.deleteNews(newsId);
+    const newsId = req.params.id;
+    const result = await newsService.deleteNews(newsId);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("deleteNews error:", e);
+    console.error("Lỗi khi xóa tin tức:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };

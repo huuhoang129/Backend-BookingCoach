@@ -1,16 +1,18 @@
+// src/services/bookingManageServices/bookingPointService.js
 import db from "../../models/index.js";
 
-// Lấy điểm đón/trả theo bookingId
+// Lấy danh sách điểm đón/trả theo bookingId
 let getPointsByBooking = (bookingId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!bookingId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameter: bookingId",
+          errMessage: "Thiếu tham số: bookingId",
         });
       }
 
+      // Lấy danh sách điểm đón/trả + kèm thông tin Location
       let points = await db.BookingPoints.findAll({
         where: { bookingId },
         include: [
@@ -25,7 +27,7 @@ let getPointsByBooking = (bookingId) => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách thành công",
         data: points,
       });
     } catch (e) {
@@ -34,17 +36,18 @@ let getPointsByBooking = (bookingId) => {
   });
 };
 
-// Thêm điểm đón/trả
+// Thêm điểm đón/trả mới
 let addPoint = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.bookingId || !data.type || !data.locationId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
+      // Tạo mới điểm đón/trả
       let point = await db.BookingPoints.create({
         bookingId: data.bookingId,
         type: data.type, // PICKUP hoặc DROPOFF
@@ -55,7 +58,7 @@ let addPoint = (data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "Point added successfully",
+        errMessage: "Thêm điểm thành công",
         data: point,
       });
     } catch (e) {
@@ -64,17 +67,18 @@ let addPoint = (data) => {
   });
 };
 
-// Cập nhật điểm đón/trả
+// Cập nhật thông tin điểm đón/trả
 let updatePoint = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.id || !data.type || !data.locationId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
+      // Cập nhật dựa theo id
       const [updated] = await db.BookingPoints.update(
         {
           type: data.type,
@@ -86,12 +90,15 @@ let updatePoint = (data) => {
       );
 
       if (updated === 0) {
-        return resolve({ errCode: 2, errMessage: "Point not found" });
+        return resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy điểm để cập nhật",
+        });
       }
 
       resolve({
         errCode: 0,
-        errMessage: "Point updated successfully",
+        errMessage: "Cập nhật thành công",
       });
     } catch (e) {
       reject(e);
@@ -99,23 +106,25 @@ let updatePoint = (data) => {
   });
 };
 
-// Xóa điểm đón/trả
+// Xóa điểm đón/trả theo id
 let deletePoint = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Kiểm tra điểm có tồn tại không
       let point = await db.BookingPoints.findOne({ where: { id } });
       if (!point) {
         return resolve({
           errCode: 2,
-          errMessage: "Point not found",
+          errMessage: "Không tìm thấy điểm để xóa",
         });
       }
 
+      // Xóa điểm
       await db.BookingPoints.destroy({ where: { id } });
 
       resolve({
         errCode: 0,
-        errMessage: "Point deleted successfully",
+        errMessage: "Xóa điểm thành công",
       });
     } catch (e) {
       reject(e);

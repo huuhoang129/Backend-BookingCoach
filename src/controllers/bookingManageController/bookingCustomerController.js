@@ -1,8 +1,7 @@
+// src/controllers/bookingManageController/bookingCustomerController.js
 import bookingCustomerService from "../../services/bookingManageServices/bookingCustomerService.js";
 
-/**
- * Lấy danh sách khách hàng
- */
+// Lấy danh sách khách theo booking ID
 const getCustomersByBooking = async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
@@ -11,10 +10,7 @@ const getCustomersByBooking = async (req, res) => {
     );
     return res.status(200).json(result);
   } catch (e) {
-    console.error(
-      "BookingCustomerController - getCustomersByBooking error:",
-      e
-    );
+    console.error("Lỗi khi lấy danh sách khách theo booking:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",
@@ -22,16 +18,14 @@ const getCustomersByBooking = async (req, res) => {
   }
 };
 
-/**
- * Thêm khách hàng vào booking
- */
+// Thêm khách vào booking
 const addCustomer = async (req, res) => {
   try {
     const data = req.body;
     const result = await bookingCustomerService.addCustomer(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("BookingCustomerController - addCustomer error:", e);
+    console.error("Lỗi khi thêm khách vào booking:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",
@@ -39,16 +33,14 @@ const addCustomer = async (req, res) => {
   }
 };
 
-/**
- * Cập nhật thông tin khách hàng
- */
+// Cập nhật thông tin khách
 const updateCustomer = async (req, res) => {
   try {
     const data = req.body;
     const result = await bookingCustomerService.updateCustomer(data);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("BookingCustomerController - updateCustomer error:", e);
+    console.error("Lỗi khi cập nhật thông tin khách:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",
@@ -56,16 +48,14 @@ const updateCustomer = async (req, res) => {
   }
 };
 
-/**
- * Xóa khách hàng
- */
+// Xóa khách khỏi booking
 const deleteCustomer = async (req, res) => {
   try {
     const id = req.params.id;
     const result = await bookingCustomerService.deleteCustomer(id);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("BookingCustomerController - deleteCustomer error:", e);
+    console.error("Lỗi khi xóa khách khỏi booking:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",

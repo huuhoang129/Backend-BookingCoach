@@ -26,6 +26,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "tripId",
         as: "bookingSeats",
       });
+
+      this.hasOne(models.DriverSchedule, {
+        foreignKey: "coachTripId",
+        as: "driverSchedule",
+      });
     }
   }
 

@@ -1,16 +1,18 @@
+// src/services/systemManageServices/staticPageServices.js
 import db from "../../models/index.js";
 
+// Lấy nội dung trang tĩnh theo pageKey
 let getStaticPage = (pageKey) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!pageKey) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter: pageKey",
+          errMessage: "Thiếu tham số bắt buộc: pageKey",
         });
       }
 
-      let blocks = await db.StaticPage.findAll({
+      const blocks = await db.StaticPage.findAll({
         where: { pageKey },
         order: [["sortOrder", "ASC"]],
         raw: true,
@@ -18,7 +20,7 @@ let getStaticPage = (pageKey) => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy nội dung trang tĩnh thành công",
         data: blocks,
       });
     } catch (e) {
@@ -27,22 +29,23 @@ let getStaticPage = (pageKey) => {
   });
 };
 
+// Cập nhật nội dung trang tĩnh theo pageKey
 let updateStaticPage = (pageKey, blocks) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!pageKey || !Array.isArray(blocks) || blocks.length === 0) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter: pageKey or blocks",
+          errMessage: "Thiếu tham số bắt buộc: pageKey hoặc blocks",
         });
       }
 
-      // Xoá block cũ
+      // Xóa toàn bộ block cũ của trang
       await db.StaticPage.destroy({
         where: { pageKey },
       });
 
-      // Thêm block mới
+      // Thêm danh sách block mới cho trang
       const newBlocks = blocks.map((b, idx) => ({
         pageKey,
         blockType: b.blockType,
@@ -55,7 +58,7 @@ let updateStaticPage = (pageKey, blocks) => {
 
       resolve({
         errCode: 0,
-        errMessage: `${pageKey} updated`,
+        errMessage: `Cập nhật trang ${pageKey} thành công`,
       });
     } catch (e) {
       reject(e);

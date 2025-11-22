@@ -1,15 +1,22 @@
+// src/controllers/paymentManageController/paymentController.js
 import paymentService from "../../services/paymentManageService/paymentService";
 
-let createBankingQR = async (req, res) => {
+// Tạo mã QR thanh toán qua Banking
+const createBankingQR = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await paymentService.createBankingQR(data);
+    const data = req.body;
+
+    // Gọi service tạo mã QR
+    const result = await paymentService.createBankingQR(data);
+
     return res.status(200).json(result);
   } catch (e) {
-    console.error("createBankingQR error:", e);
+    // Lỗi khi tạo QR thanh toán
+    console.error("Lỗi khi tạo mã QR thanh toán:", e);
+
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };

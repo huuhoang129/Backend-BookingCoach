@@ -35,12 +35,9 @@ let generateInvoice = async (booking, payment) => {
   doc.fillColor("black");
   doc.moveDown(3);
 
-  // ✅ QR chứa booking info + payment
+  // QR chỉ chứa bookingCode, status sẽ được lấy realtime từ server khi quét
   const qrData = {
     bookingCode: booking.bookingCode,
-    amount: booking.totalAmount,
-    method: payment?.method || "N/A",
-    status: payment?.status || "PENDING",
   };
 
   const qrImage = await QRCode.toDataURL(JSON.stringify(qrData));
@@ -61,24 +58,51 @@ let generateInvoice = async (booking, payment) => {
   doc.font("Bold").text("Thông tin khách hàng", { underline: true });
   doc
     .font("Regular")
-    .text(`Tên khách: ${booking.customers[0]?.fullName || "N/A"}`)
-    .text(`SĐT: ${booking.customers[0]?.phone || "N/A"}`)
-    .text(`Email: ${booking.customers[0]?.email || "N/A"}`)
+    .text(`Tên khách: ${booking.customers?.[0]?.fullName || "N/A"}`)
+    .text(`SĐT: ${booking.customers?.[0]?.phone || "N/A"}`)
+    .text(`Email: ${booking.customers?.[0]?.email || "N/A"}`)
     .moveDown(1);
 
   // Thông tin chuyến đi
   doc.font("Bold").text("Thông tin chuyến đi", { underline: true });
+
+  const routeText = `Tuyến: ${
+    booking.trip?.route?.fromLocation?.nameLocations || "N/A"
+  } --> ${booking.trip?.route?.toLocation?.nameLocations || "N/A"}`;
+
+  const dateTimeText = `Ngày giờ: ${booking.trip?.startDate || ""} ${
+    booking.trip?.startTime || ""
+  }`;
+
+  const seatsText = `Ghế: ${
+    booking.seats?.map((s) => s.seat?.name).join(", ") || "N/A"
+  }`;
+
+  // Lấy thông tin xe
+  const vehicle = booking.trip?.vehicle;
+  const vehicleTypeMap = {
+    NORMAL: "Ghế ngồi",
+    SLEEPER: "Giường nằm",
+    DOUBLESLEEPER: "Giường đôi",
+    LIMOUSINE: "Limousine",
+  };
+
+  const vehicleTypeCode = vehicle?.type;
+  const vehicleTypeLabel =
+    (vehicleTypeCode && vehicleTypeMap[vehicleTypeCode]) || "N/A";
+
+  const licensePlate = vehicle?.licensePlate || "N/A";
+  const vehicleName = vehicle?.name || "";
+
   doc
     .font("Regular")
+    .text(routeText)
+    .text(dateTimeText)
+    .text(seatsText)
     .text(
-      `Tuyến: ${booking.trip?.route?.fromLocation?.nameLocations} --> ${booking.trip?.route?.toLocation?.nameLocations}`
+      `Loại xe: ${vehicleTypeLabel}${vehicleName ? ` (${vehicleName})` : ""}`
     )
-    .text(
-      `Ngày giờ: ${booking.trip?.startDate || ""} ${
-        booking.trip?.startTime || ""
-      }`
-    )
-    .text(`Ghế: ${booking.seats.map((s) => s.seat?.name).join(", ")}`)
+    .text(`Biển số: ${licensePlate}`)
     .moveDown(1);
 
   // Thông tin thanh toán
@@ -136,6 +160,10 @@ let getInvoiceFile = async (bookingId) => {
                 { model: db.Location, as: "fromLocation" },
                 { model: db.Location, as: "toLocation" },
               ],
+            },
+            {
+              model: db.Vehicle,
+              as: "vehicle",
             },
           ],
         },

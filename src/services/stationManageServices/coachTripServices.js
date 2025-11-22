@@ -1,13 +1,15 @@
+// src/services/stationManageServices/coachTripServices.js
 import db from "../../models/index.js";
 import { Op } from "sequelize";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
 
-// Lấy tất cả trip
+// Lấy tất cả chuyến xe
 let getAllTrips = async () => {
   try {
-    let trips = await db.CoachTrip.findAll({
+    const trips = await db.CoachTrip.findAll({
+      attributes: ["id", "startDate", "startTime", "totalTime", "status"],
       include: [
         {
           model: db.CoachRoute,
@@ -17,15 +19,27 @@ let getAllTrips = async () => {
             {
               model: db.Location,
               as: "fromLocation",
-              include: [{ model: db.Province, as: "province" }],
+              attributes: ["id", "nameLocations"],
             },
             {
               model: db.Location,
               as: "toLocation",
-              include: [{ model: db.Province, as: "province" }],
+              attributes: ["id", "nameLocations"],
             },
           ],
         },
+        {
+          model: db.DriverSchedule,
+          as: "driverSchedule",
+          include: [
+            {
+              model: db.User,
+              as: "driver",
+              attributes: ["id", "firstName", "lastName", "phoneNumber"],
+            },
+          ],
+        },
+
         {
           model: db.Vehicle,
           as: "vehicle",
@@ -40,6 +54,7 @@ let getAllTrips = async () => {
         {
           model: db.BookingSeats,
           as: "bookingSeats",
+          attributes: ["id", "seatId", "status"],
           include: [{ model: db.Seat, as: "seat", attributes: ["id", "name"] }],
         },
         { model: db.TripPrices, as: "price" },
@@ -51,33 +66,55 @@ let getAllTrips = async () => {
       raw: false,
       nest: true,
     });
+
+    // Tính ghế trống + thêm trạng thái tài xế
     const tripsWithSeats = trips.map((trip) => {
-      const tripData = trip.toJSON ? trip.toJSON() : trip;
+      const tripData = trip.toJSON();
+
       const seats = tripData.vehicle?.seatVehicle || [];
-      const bookedSeatIds = tripData.bookingSeats?.map((b) => b.seatId) || [];
+      const bookedSeatIds =
+        tripData.bookingSeats
+          ?.filter((b) => b.status !== "CANCELLED")
+          .map((b) => b.seatId) || [];
+
       const availableSeats = seats.filter((s) => !bookedSeatIds.includes(s.id));
+
+      const hasDriver = !!tripData.driverSchedule;
+      const driverInfo = tripData.driverSchedule?.driver || null;
+      const driverName = driverInfo
+        ? `${driverInfo.firstName} ${driverInfo.lastName}`
+        : null;
 
       return {
         ...tripData,
         totalSeats: seats.length,
         availableSeats: availableSeats.length,
+
+        hasDriver,
+        driver: driverInfo,
+        driverName,
       };
     });
 
-    return { errCode: 0, errMessage: "OK", data: tripsWithSeats };
+    return {
+      errCode: 0,
+      errMessage: "Lấy danh sách chuyến xe thành công",
+      data: tripsWithSeats,
+    };
   } catch (e) {
+    console.error("getAllTrips error:", e);
     throw e;
   }
 };
 
-// Lấy trip theo id
+// Lấy chuyến xe theo ID
 let getTripById = async (tripId) => {
   try {
     if (!tripId) {
-      return { errCode: 1, errMessage: "Missing parameter: tripId" };
+      return { errCode: 1, errMessage: "Thiếu tham số tripId" };
     }
 
-    let trip = await db.CoachTrip.findOne({
+    const trip = await db.CoachTrip.findOne({
       where: { id: tripId },
       include: [
         {
@@ -104,20 +141,26 @@ let getTripById = async (tripId) => {
       nest: true,
     });
 
-    if (!trip) return { errCode: 2, errMessage: "Trip not found" };
+    if (!trip) return { errCode: 2, errMessage: "Không tìm thấy chuyến xe" };
 
-    return { errCode: 0, errMessage: "OK", data: trip };
+    return {
+      errCode: 0,
+      errMessage: "Lấy thông tin chuyến xe thành công",
+      data: trip,
+    };
   } catch (e) {
     throw e;
   }
 };
 
+// Tính tổng phút từ chuỗi thời gian
 const getDurationMinutes = (timeStr) => {
   if (!timeStr) return 0;
   const [h, m, s] = timeStr.split(":").map(Number);
   return h * 60 + m + (s ? s / 60 : 0);
 };
 
+// Tạo chuyến xe
 let createTrip = async (data) => {
   try {
     const {
@@ -129,27 +172,31 @@ let createTrip = async (data) => {
       totalTime,
       status,
     } = data;
+
     if (!coachRouteId || !vehicleId || !startDate || !startTime || !totalTime) {
       return { errCode: 1, errMessage: "Thiếu tham số bắt buộc" };
     }
 
     const tripStart = dayjs(`${startDate} ${startTime}`);
     const tripEnd = tripStart.add(getDurationMinutes(totalTime), "minute");
+
     const sameDayTrips = await db.CoachTrip.findAll({
       where: { vehicleId, startDate },
     });
 
+    // Kiểm tra trùng lịch có thời gian buffer 1h
     for (const trip of sameDayTrips) {
       const existingStart = dayjs(`${trip.startDate} ${trip.startTime}`);
       const existingEnd = existingStart.add(
         getDurationMinutes(trip.totalTime),
         "minute"
       );
-      const existingStartWithBuffer = existingStart.subtract(60, "minute");
-      const existingEndWithBuffer = existingEnd.add(60, "minute");
+
+      const startBuffer = existingStart.subtract(60, "minute");
+      const endBuffer = existingEnd.add(60, "minute");
+
       const overlap =
-        tripStart.isBefore(existingEndWithBuffer) &&
-        tripEnd.isAfter(existingStartWithBuffer);
+        tripStart.isBefore(endBuffer) && tripEnd.isAfter(startBuffer);
 
       if (overlap) {
         return {
@@ -158,7 +205,7 @@ let createTrip = async (data) => {
             "HH:mm"
           )} đến ${existingEnd.format(
             "HH:mm"
-          )}. Phải cách ít nhất 1 tiếng trước và sau chuyến này.`,
+          )}. Các chuyến phải cách nhau ít nhất 1 giờ.`,
         };
       }
     }
@@ -175,15 +222,15 @@ let createTrip = async (data) => {
 
     return { errCode: 0, errMessage: "Tạo chuyến xe thành công" };
   } catch (e) {
-    console.error("❌ Lỗi khi tạo chuyến xe:", e);
+    console.error("Lỗi tạo chuyến:", e);
     throw e;
   }
 };
 
-// Cập nhật trip
-let updateTrip = async (data) => {
+// Cập nhật chuyến xe
+let updateTrip = async (id, data) => {
   try {
-    if (!data.id) return { errCode: 1, errMessage: "Missing id" };
+    if (!id) return { errCode: 1, errMessage: "Thiếu tham số id" };
 
     const [updated] = await db.CoachTrip.update(
       {
@@ -195,33 +242,36 @@ let updateTrip = async (data) => {
         totalTime: data.totalTime,
         status: data.status,
       },
-      { where: { id: data.id } }
+      { where: { id } }
     );
 
-    if (!updated) return { errCode: 2, errMessage: "Trip not found" };
-    return { errCode: 0, errMessage: "Trip updated successfully" };
+    if (!updated) return { errCode: 2, errMessage: "Không tìm thấy chuyến xe" };
+
+    return { errCode: 0, errMessage: "Cập nhật chuyến xe thành công" };
   } catch (e) {
+    console.error("updateTrip error:", e);
     throw e;
   }
 };
 
-// Xóa trip
+// Xóa chuyến xe
 let deleteTrip = async (tripId) => {
   try {
-    if (!tripId) return { errCode: 1, errMessage: "Missing tripId" };
+    if (!tripId) return { errCode: 1, errMessage: "Thiếu tham số tripId" };
 
     const trip = await db.CoachTrip.findOne({ where: { id: tripId } });
-    if (!trip) return { errCode: 2, errMessage: "Trip not found" };
+    if (!trip) return { errCode: 2, errMessage: "Không tìm thấy chuyến xe" };
 
     await db.CoachTrip.destroy({ where: { id: tripId } });
 
-    return { errCode: 0, errMessage: "Trip deleted successfully" };
+    return { errCode: 0, errMessage: "Xóa chuyến xe thành công" };
   } catch (e) {
     console.error("deleteTrip error:", e);
     throw e;
   }
 };
 
+// Tìm chuyến theo tuyến và ngày
 let findTripsByRouteAndDate = async (
   fromLocationId,
   toLocationId,
@@ -232,8 +282,7 @@ let findTripsByRouteAndDate = async (
     if (!fromLocationId || !toLocationId || !startDate) {
       return {
         errCode: 1,
-        errMessage:
-          "Missing required parameters (fromLocationId, toLocationId, startDate)",
+        errMessage: "Thiếu tham số bắt buộc",
         data: [],
       };
     }
@@ -246,7 +295,7 @@ let findTripsByRouteAndDate = async (
           model: db.CoachRoute,
           as: "route",
           attributes: { exclude: ["imageRouteCoach"] },
-          where: { fromLocationId, toLocationId }, // ✅ chỉ chiều đi
+          where: { fromLocationId, toLocationId },
           include: [
             {
               model: db.Location,
@@ -274,6 +323,7 @@ let findTripsByRouteAndDate = async (
         {
           model: db.BookingSeats,
           as: "bookingSeats",
+          attributes: ["id", "seatId", "status"],
           include: [{ model: db.Seat, as: "seat", attributes: ["id", "name"] }],
         },
         { model: db.TripPrices, as: "price" },
@@ -292,10 +342,15 @@ let findTripsByRouteAndDate = async (
       nest: true,
     });
 
+    // Tính ghế trống và trạng thái ghế
     const tripsWithSeats = trips.map((trip) => {
       const tripData = trip.toJSON ? trip.toJSON() : trip;
       const seats = tripData.vehicle?.seatVehicle || [];
-      const bookedSeatIds = tripData.bookingSeats?.map((b) => b.seatId) || [];
+
+      const bookedSeatIds =
+        tripData.bookingSeats
+          ?.filter((b) => b.status !== "CANCELLED")
+          .map((b) => b.seatId) || [];
 
       const availableSeats = seats.filter((s) => !bookedSeatIds.includes(s.id));
 
@@ -314,14 +369,14 @@ let findTripsByRouteAndDate = async (
 
     return {
       errCode: 0,
-      errMessage: "OK",
+      errMessage: "Lấy danh sách chuyến xe thành công",
       data: tripsWithSeats,
     };
   } catch (e) {
-    console.error("❌ Error in findTripsByRouteAndDate:", e);
+    console.error("findTripsByRouteAndDate error:", e);
     return {
       errCode: -1,
-      errMessage: "Server error",
+      errMessage: "Lỗi server",
       data: [],
     };
   }

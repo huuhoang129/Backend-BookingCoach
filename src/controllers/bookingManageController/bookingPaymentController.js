@@ -1,14 +1,13 @@
+// src/controllers/bookingManageController/bookingPaymentController.js
 import paymentService from "../../services/bookingManageServices/bookingPaymentService.js";
 
-/**
- * Lấy danh sách thanh toán
- */
+// Lấy tất cả các giao dịch thanh toán
 const getAllPayments = async (req, res) => {
   try {
     const result = await paymentService.getAllPayments();
     return res.status(200).json(result);
   } catch (e) {
-    console.error("PaymentController - getAllPayments error:", e);
+    console.error("Lỗi khi lấy danh sách thanh toán:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",
@@ -16,15 +15,13 @@ const getAllPayments = async (req, res) => {
   }
 };
 
-/**
- * Tạo giao dịch thanh toán mới
- */
+// Tạo giao dịch thanh toán mới
 const createPayment = async (req, res) => {
   try {
     const result = await paymentService.createPayment(req.body);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("PaymentController - createPayment error:", e);
+    console.error("Lỗi khi tạo giao dịch thanh toán:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",
@@ -32,16 +29,14 @@ const createPayment = async (req, res) => {
   }
 };
 
-/**
- * Lấy thông tin thanh toán
- */
+// Lấy thông tin thanh toán theo booking ID
 const getPaymentByBooking = async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
     const result = await paymentService.getPaymentByBooking(bookingId);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("PaymentController - getPaymentByBooking error:", e);
+    console.error("Lỗi khi lấy thông tin thanh toán theo booking:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",
@@ -49,15 +44,13 @@ const getPaymentByBooking = async (req, res) => {
   }
 };
 
-/**
- * Cập nhật trạng thái thanh toán
- */
+// Cập nhật trạng thái thanh toán
 const updatePaymentStatus = async (req, res) => {
   try {
     const result = await paymentService.updatePaymentStatus(req.body);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("PaymentController - updatePaymentStatus error:", e);
+    console.error("Lỗi khi cập nhật trạng thái thanh toán:", e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi hệ thống",

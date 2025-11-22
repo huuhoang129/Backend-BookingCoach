@@ -1,6 +1,5 @@
 import db from "../../models/index.js";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import emailService from "../emailServices.js";
 
 const salt = bcrypt.genSaltSync(10);

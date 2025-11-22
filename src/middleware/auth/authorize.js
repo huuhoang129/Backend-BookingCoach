@@ -1,3 +1,4 @@
+//src/middleware/auth/authorize.js
 let authorize = (roles = []) => {
   return (req, res, next) => {
     if (!req.user)

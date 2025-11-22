@@ -1,8 +1,11 @@
+// src/services/userManageServices/accountServices.js
 import db from "../../models/index.js";
 
+// Lấy danh sách toàn bộ tài khoản
 let getAllAccounts = () => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Lấy các thông tin cần thiết của user
       let users = await db.User.findAll({
         attributes: [
           "id",
@@ -18,7 +21,7 @@ let getAllAccounts = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách tài khoản thành công",
         data: users,
       });
     } catch (e) {
@@ -27,25 +30,27 @@ let getAllAccounts = () => {
   });
 };
 
-// Khóa tài khoản (status = Looking)
+// Khóa tài khoản (status = Locking)
 let lockAccount = (userId) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Tìm user theo ID
       let user = await db.User.findOne({ where: { id: userId }, raw: false });
 
       if (!user) {
         return resolve({
           errCode: 1,
-          errMessage: "User not found!",
+          errMessage: "Không tìm thấy người dùng",
         });
       }
 
+      // Cập nhật trạng thái khóa
       user.status = "Locking";
       await user.save();
 
       return resolve({
         errCode: 0,
-        errMessage: "Account locked successfully!",
+        errMessage: "Khóa tài khoản thành công",
       });
     } catch (e) {
       reject(e);
@@ -53,25 +58,27 @@ let lockAccount = (userId) => {
   });
 };
 
-// Mở tài khoản (status = Active)
+// Mở khóa tài khoản (status = Active)
 let unlockAccount = (userId) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Tìm user theo ID
       let user = await db.User.findOne({ where: { id: userId }, raw: false });
 
       if (!user) {
         return resolve({
           errCode: 1,
-          errMessage: "User not found!",
+          errMessage: "Không tìm thấy người dùng",
         });
       }
 
-      user.status = "Active"; // 👈 trạng thái mở
+      // Cập nhật trạng thái mở khóa
+      user.status = "Active";
       await user.save();
 
       return resolve({
         errCode: 0,
-        errMessage: "Account unlocked successfully!",
+        errMessage: "Mở khóa tài khoản thành công",
       });
     } catch (e) {
       reject(e);

@@ -1,8 +1,7 @@
+// src/controllers/bookingSeatController.js
 import bookingSeatService from "../../services/bookingManageServices/bookingSeatService.js";
 
-/**
- * Lấy danh sách ghế
- */
+// Lấy danh sách ghế theo booking ID
 const getSeatsByBooking = async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
@@ -17,9 +16,7 @@ const getSeatsByBooking = async (req, res) => {
   }
 };
 
-/**
- * Thêm ghế
- */
+// Thêm ghế vào booking
 const addSeat = async (req, res) => {
   try {
     const data = req.body;
@@ -34,9 +31,7 @@ const addSeat = async (req, res) => {
   }
 };
 
-/**
- * Cập nhật thông tin ghế
- */
+// Cập nhật thông tin ghế
 const updateSeat = async (req, res) => {
   try {
     const data = req.body;
@@ -51,9 +46,7 @@ const updateSeat = async (req, res) => {
   }
 };
 
-/**
- * Xóa ghế
- */
+// Xóa ghế khỏi booking
 const deleteSeat = async (req, res) => {
   try {
     const id = req.params.id;

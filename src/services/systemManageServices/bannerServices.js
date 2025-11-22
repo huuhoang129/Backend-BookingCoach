@@ -1,18 +1,23 @@
+// src/services/systemManageServices/bannerServices.js
 import db from "../../models/index.js";
 
+// Lấy toàn bộ danh sách banner
 let getAllBanners = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let banners = await db.Banners.findAll();
+
+      // Chuyển dữ liệu ảnh từ base64 sang binary để hiển thị
       if (banners && banners.length > 0) {
         banners.map((item) => {
           item.image = Buffer.from(item.image, "base64").toString("binary");
           return item;
         });
       }
+
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách banner thành công",
         data: banners,
       });
     } catch (e) {
@@ -21,115 +26,131 @@ let getAllBanners = () => {
   });
 };
 
+// Lấy thông tin banner theo ID
 let getBannerById = (inputId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!inputId) {
-        // if (!data.email) {
-        resolve({
+        return resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
-        });
-      } else {
-        let data = await db.Banners.findOne({
-          where: {
-            id: inputId,
-          },
-          attributes: ["title", "image"],
-          raw: true,
-        });
-
-        if (data && data.image) {
-          data.image = Buffer.from(data.image).toString("binary");
-        }
-        resolve({
-          errMessage: "OK",
-          errCode: 0,
-          data,
+          errMessage: "Thiếu tham số bắt buộc: id",
         });
       }
+
+      const data = await db.Banners.findOne({
+        where: {
+          id: inputId,
+        },
+        attributes: ["title", "image"],
+        raw: true,
+      });
+
+      // Chuyển dữ liệu ảnh sang dạng binary
+      if (data && data.image) {
+        data.image = Buffer.from(data.image).toString("binary");
+      }
+
+      resolve({
+        errMessage: "Lấy thông tin banner thành công",
+        errCode: 0,
+        data,
+      });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Tạo mới banner
 let createBanner = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Kiểm tra tham số đầu vào
       if (!data.title || !data.imageBase64) {
-        resolve({
+        return resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
-        });
-      } else {
-        await db.Banners.create({
-          title: data.title,
-          image: data.imageBase64,
-        });
-
-        resolve({
-          errCode: 0,
-          errMessage: "OK",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
+
+      // Tạo banner mới
+      await db.Banners.create({
+        title: data.title,
+        image: data.imageBase64,
+      });
+
+      resolve({
+        errCode: 0,
+        errMessage: "Tạo banner thành công",
+      });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Xóa banner theo ID
 let deleteBanner = (bannerId) => {
   return new Promise(async (resolve, reject) => {
-    let foundUser = await db.Banners.findOne({
-      where: { id: bannerId },
-    });
-    if (!foundUser) {
-      resolve({
-        errCode: 2,
-        errMessage: `Banner Isn't Exist`,
-      });
-    }
-    await db.Banners.destroy({
-      where: { id: bannerId },
-    });
-
-    resolve({
-      errCode: 0,
-      errMessage: `Banner Is Deleted`,
-    });
-  });
-};
-
-let updateBanner = (data) => {
-  return new Promise(async (resolve, reject) => {
     try {
-      if (!data.id || !data.title) {
+      // Kiểm tra banner có tồn tại không
+      const foundBanner = await db.Banners.findOne({
+        where: { id: bannerId },
+      });
+
+      if (!foundBanner) {
         return resolve({
           errCode: 2,
-          errMessage: "Missing required parameters!",
+          errMessage: "Banner không tồn tại",
         });
       }
 
-      let banner = await db.Banners.findOne({
+      await db.Banners.destroy({
+        where: { id: bannerId },
+      });
+
+      resolve({
+        errCode: 0,
+        errMessage: "Xóa banner thành công",
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+// Cập nhật thông tin banner
+let updateBanner = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Kiểm tra tham số bắt buộc
+      if (!data.id || !data.title) {
+        return resolve({
+          errCode: 2,
+          errMessage: "Thiếu tham số bắt buộc",
+        });
+      }
+
+      // Tìm banner cần cập nhật
+      const banner = await db.Banners.findOne({
         where: { id: data.id },
         raw: false,
       });
+
       if (banner) {
         banner.title = data.title;
         if (data.imageBase64) {
           banner.image = data.imageBase64;
         }
         await banner.save();
-
         resolve({
           errCode: 0,
-          errMessage: "Update Banner Succeeds!",
+          errMessage: "Cập nhật banner thành công",
         });
       } else {
         resolve({
           errCode: 1,
-          errMessage: `Banner's not found!`,
+          errMessage: "Không tìm thấy banner",
         });
       }
     } catch (e) {

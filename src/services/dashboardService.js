@@ -1,25 +1,27 @@
+// src/services/dashboardService.js
 import db from "../models";
 import { Op, fn, col } from "sequelize";
 import dayjs from "dayjs";
 
+// Lấy tổng quan dashboard
 const getOverview = async () => {
   const startOfMonth = dayjs().startOf("month").toDate();
   const endOfMonth = dayjs().endOf("month").toDate();
+
+  // Doanh thu
   const totalRevenue = await db.BookingPayments.sum("amount", {
     where: {
       status: "SUCCESS",
-      createdAt: {
-        [Op.between]: [startOfMonth, endOfMonth],
-      },
+      createdAt: { [Op.between]: [startOfMonth, endOfMonth] },
     },
   });
+
+  // Số chuyến
   const totalTrips = await db.CoachTrip.count({
-    where: {
-      createdAt: {
-        [Op.between]: [startOfMonth, endOfMonth],
-      },
-    },
+    where: { createdAt: { [Op.between]: [startOfMonth, endOfMonth] } },
   });
+
+  // Số vé bán thành công
   const totalTickets = await db.BookingSeats.count({
     include: [
       {
@@ -27,13 +29,13 @@ const getOverview = async () => {
         as: "booking",
         where: {
           status: "CONFIRMED",
-          createdAt: {
-            [Op.between]: [startOfMonth, endOfMonth],
-          },
+          createdAt: { [Op.between]: [startOfMonth, endOfMonth] },
         },
       },
     ],
   });
+
+  // Số tài xế đang hoạt động
   const activeDrivers = await db.User.count({
     where: { role: "Driver", status: "Active" },
   });
@@ -50,11 +52,15 @@ const getOverview = async () => {
   };
 };
 
+// Lấy dữ liệu biểu đồ doanh thu và tỷ lệ booking theo trạng thái
 const getCharts = async () => {
   const startOfMonth = dayjs().startOf("month");
   const endOfMonth = dayjs().endOf("month");
   const daysInMonth = endOfMonth.date();
+
   const revenueData = [];
+
+  // Duyệt từng ngày trong tháng để lấy doanh thu
   for (let i = 1; i <= daysInMonth; i++) {
     const currentDay = startOfMonth.date(i);
 
@@ -76,11 +82,10 @@ const getCharts = async () => {
     });
   }
 
+  // Tổng booking theo trạng thái
   const totalBookings = await db.Bookings.count({
     where: {
-      createdAt: {
-        [Op.between]: [startOfMonth.toDate(), endOfMonth.toDate()],
-      },
+      createdAt: { [Op.between]: [startOfMonth.toDate(), endOfMonth.toDate()] },
     },
   });
 
@@ -134,6 +139,7 @@ const getCharts = async () => {
   };
 };
 
+// Lấy top 5 tuyến đường có doanh thu cao nhất
 const getTopRoutes = async () => {
   const data = await db.BookingSeats.findAll({
     attributes: [
@@ -147,7 +153,6 @@ const getTopRoutes = async () => {
       ],
       [col("booking.trip.route.toLocation.id"), "toLocationId"],
       [col("booking.trip.route.toLocation.nameLocations"), "toLocationName"],
-
       [col("booking.trip.vehicle.type"), "vehicleType"],
     ],
     include: [
@@ -172,14 +177,14 @@ const getTopRoutes = async () => {
                   {
                     model: db.Location,
                     as: "fromLocation",
-                    attributes: [],
                     required: true,
+                    attributes: [],
                   },
                   {
                     model: db.Location,
                     as: "toLocation",
-                    attributes: [],
                     required: true,
+                    attributes: [],
                   },
                 ],
               },

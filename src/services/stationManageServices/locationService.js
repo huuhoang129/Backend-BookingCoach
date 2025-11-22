@@ -1,10 +1,11 @@
+// src/services/stationManageServices/locationService.js
 import db from "../../models/index.js";
 
+// Lấy toàn bộ tỉnh/thành
 let getAllProvinces = () => {
   return new Promise(async (resolve, reject) => {
     try {
       let provinces = await db.Province.findAll({
-        // include: [{ model: db.Location, as: "locations" }],
         order: [["nameProvince", "ASC"]],
         raw: true,
         nest: true,
@@ -12,7 +13,7 @@ let getAllProvinces = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách tỉnh thành công",
         data: provinces,
       });
     } catch (e) {
@@ -21,13 +22,14 @@ let getAllProvinces = () => {
   });
 };
 
+// Lấy tỉnh theo ID (kèm danh sách địa điểm thuộc tỉnh)
 let getProvinceById = (inputId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!inputId) {
         resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tham số đầu vào",
         });
       } else {
         let province = await db.Province.findOne({
@@ -38,7 +40,7 @@ let getProvinceById = (inputId) => {
 
         resolve({
           errCode: 0,
-          errMessage: "OK",
+          errMessage: "Lấy thông tin tỉnh thành công",
           data: province,
         });
       }
@@ -48,16 +50,18 @@ let getProvinceById = (inputId) => {
   });
 };
 
+// Tạo mới tỉnh
 let createProvince = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.nameProvince) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tên tỉnh",
         });
       }
 
+      // Tự sinh mã tỉnh từ chữ cái đầu
       const code = data.nameProvince
         .split(" ")
         .map((word) => word[0]?.toUpperCase())
@@ -65,12 +69,12 @@ let createProvince = (data) => {
 
       await db.Province.create({
         nameProvince: data.nameProvince,
-        valueProvince: code, // 👈 tự gán luôn ở service
+        valueProvince: code,
       });
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Tạo tỉnh thành công",
       });
     } catch (e) {
       reject(e);
@@ -78,13 +82,14 @@ let createProvince = (data) => {
   });
 };
 
+// Cập nhật thông tin tỉnh
 let updateProvince = (id, data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!id || !data.nameProvince) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tham số đầu vào",
         });
       }
 
@@ -92,10 +97,11 @@ let updateProvince = (id, data) => {
       if (!province) {
         return resolve({
           errCode: 2,
-          errMessage: "Province not found",
+          errMessage: "Không tìm thấy tỉnh",
         });
       }
 
+      // Sinh lại mã tỉnh từ tên
       const code = data.nameProvince
         .split(" ")
         .map((word) => word[0]?.toUpperCase())
@@ -111,15 +117,15 @@ let updateProvince = (id, data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "Province updated successfully",
+        errMessage: "Cập nhật tỉnh thành công",
       });
     } catch (e) {
-      console.error("❌ Error updateProvince:", e);
       reject(e);
     }
   });
 };
 
+// Xóa tỉnh theo ID
 let deleteProvince = (provinceId) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -127,13 +133,13 @@ let deleteProvince = (provinceId) => {
       if (!province) {
         resolve({
           errCode: 2,
-          errMessage: "Province isn't exist",
+          errMessage: "Tỉnh không tồn tại",
         });
       } else {
         await db.Province.destroy({ where: { id: provinceId } });
         resolve({
           errCode: 0,
-          errMessage: "Province deleted successfully",
+          errMessage: "Xóa tỉnh thành công",
         });
       }
     } catch (e) {
@@ -142,6 +148,7 @@ let deleteProvince = (provinceId) => {
   });
 };
 
+// Lấy toàn bộ địa điểm (kèm thông tin tỉnh)
 let getAllLocations = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -154,7 +161,7 @@ let getAllLocations = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách địa điểm thành công",
         data: locations,
       });
     } catch (e) {
@@ -163,13 +170,14 @@ let getAllLocations = () => {
   });
 };
 
+// Lấy địa điểm theo ID
 let getLocationById = (inputId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!inputId) {
         resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tham số đầu vào",
         });
       } else {
         let location = await db.Location.findOne({
@@ -180,7 +188,7 @@ let getLocationById = (inputId) => {
 
         resolve({
           errCode: 0,
-          errMessage: "OK",
+          errMessage: "Lấy thông tin địa điểm thành công",
           data: location,
         });
       }
@@ -190,13 +198,14 @@ let getLocationById = (inputId) => {
   });
 };
 
+// Tạo mới địa điểm
 let createLocation = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.nameLocations || !data.provinceId) {
         resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tham số đầu vào",
         });
       } else {
         await db.Location.create({
@@ -204,9 +213,10 @@ let createLocation = (data) => {
           type: data.type || "station",
           provinceId: data.provinceId,
         });
+
         resolve({
           errCode: 0,
-          errMessage: "OK",
+          errMessage: "Tạo địa điểm thành công",
         });
       }
     } catch (e) {
@@ -215,16 +225,17 @@ let createLocation = (data) => {
   });
 };
 
+// Cập nhật địa điểm
 let updateLocation = (id, data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!id || !data.nameLocations || !data.provinceId) {
-        return resolve({ errCode: 1, errMessage: "Missing parameter" });
+        return resolve({ errCode: 1, errMessage: "Thiếu tham số đầu vào" });
       }
 
       let location = await db.Location.findOne({ where: { id }, raw: false });
       if (!location) {
-        return resolve({ errCode: 2, errMessage: "Location not found" });
+        return resolve({ errCode: 2, errMessage: "Không tìm thấy địa điểm" });
       }
 
       await db.Location.update(
@@ -236,14 +247,17 @@ let updateLocation = (id, data) => {
         { where: { id } }
       );
 
-      resolve({ errCode: 0, errMessage: "Location updated successfully" });
+      resolve({
+        errCode: 0,
+        errMessage: "Cập nhật địa điểm thành công",
+      });
     } catch (e) {
-      console.error("❌ Error updateLocation:", e);
       reject(e);
     }
   });
 };
 
+// Xóa địa điểm
 let deleteLocation = (locationId) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -251,13 +265,13 @@ let deleteLocation = (locationId) => {
       if (!location) {
         resolve({
           errCode: 2,
-          errMessage: "Location isn't exist",
+          errMessage: "Địa điểm không tồn tại",
         });
       } else {
         await db.Location.destroy({ where: { id: locationId } });
         resolve({
           errCode: 0,
-          errMessage: "Location deleted successfully",
+          errMessage: "Xóa địa điểm thành công",
         });
       }
     } catch (e) {
@@ -266,6 +280,7 @@ let deleteLocation = (locationId) => {
   });
 };
 
+// Lấy danh sách tỉnh + địa điểm dạng cây (Tree Select)
 let getAllProvincesWithLocationsTree = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -275,6 +290,7 @@ let getAllProvincesWithLocationsTree = () => {
         raw: false,
       });
 
+      // Chuẩn hóa lại cấu trúc dữ liệu cho UI
       let data = provinces.map((province) => ({
         value: province.valueProvince,
         label: province.nameProvince,
@@ -286,7 +302,7 @@ let getAllProvincesWithLocationsTree = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách cây tỉnh thành công",
         data,
       });
     } catch (e) {

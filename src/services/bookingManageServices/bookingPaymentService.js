@@ -8,7 +8,7 @@ let getAllPayments = async () => {
         {
           model: db.Bookings,
           as: "booking",
-          attributes: ["id", "status", "totalAmount"],
+          attributes: ["id", "bookingCode", "status", "totalAmount"],
         },
       ],
       order: [["createdAt", "DESC"]],

@@ -1,5 +1,7 @@
+// src/services/systemManageServices/newServices.js
 import db from "../../models/index.js";
 
+// Lấy danh sách toàn bộ tin tức
 let getAllNews = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -24,6 +26,7 @@ let getAllNews = () => {
         nest: true,
       });
 
+      // Chuyển thumbnail từ base64 sang dạng binary để hiển thị
       if (news && news.length > 0) {
         news = news.map((item) => {
           if (item.thumbnail) {
@@ -37,7 +40,7 @@ let getAllNews = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách tin tức thành công",
         data: news,
       });
     } catch (e) {
@@ -46,17 +49,18 @@ let getAllNews = () => {
   });
 };
 
+// Lấy chi tiết tin tức theo ID
 let getNewsById = (newsId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!newsId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tham số bắt buộc: id",
         });
       }
 
-      let news = await db.News.findOne({
+      const news = await db.News.findOne({
         where: { id: newsId },
         include: [
           {
@@ -80,19 +84,19 @@ let getNewsById = (newsId) => {
       if (!news) {
         return resolve({
           errCode: 2,
-          errMessage: "News not found",
+          errMessage: "Không tìm thấy tin tức",
         });
       }
 
+      // Chuyển thumbnail từ buffer sang base64 string
       if (news.thumbnail) {
-        // Convert buffer → base64 string
         const base64Str = news.thumbnail.toString("base64");
         news.thumbnail = `data:image/png;base64,${base64Str}`;
       }
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy thông tin tin tức thành công",
         data: news,
       });
     } catch (e) {
@@ -101,17 +105,18 @@ let getNewsById = (newsId) => {
   });
 };
 
+// Tạo mới tin tức
 let createNews = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.title || !data.authorId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
-      let news = await db.News.create({
+      const news = await db.News.create({
         title: data.title,
         thumbnail: data.thumbnailBase64 || null,
         authorId: data.authorId,
@@ -119,9 +124,10 @@ let createNews = (data) => {
         newsType: data.newsType || "News",
       });
 
+      // Tạo các block nội dung chi tiết
       if (Array.isArray(data.blocks) && data.blocks.length > 0) {
         for (let i = 0; i < data.blocks.length; i++) {
-          let block = data.blocks[i];
+          const block = data.blocks[i];
           await db.News_Details.create({
             newsId: news.id,
             blockType: block.blockType,
@@ -134,7 +140,7 @@ let createNews = (data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Tạo tin tức thành công",
         data: news,
       });
     } catch (e) {
@@ -143,17 +149,18 @@ let createNews = (data) => {
   });
 };
 
+// Cập nhật tin tức
 let updateNews = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.id) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing parameter: id",
+          errMessage: "Thiếu tham số bắt buộc: id",
         });
       }
 
-      let news = await db.News.findOne({
+      const news = await db.News.findOne({
         where: { id: data.id },
         raw: false,
       });
@@ -161,23 +168,25 @@ let updateNews = (data) => {
       if (!news) {
         return resolve({
           errCode: 2,
-          errMessage: "News not found",
+          errMessage: "Không tìm thấy tin tức",
         });
       }
 
+      // Cập nhật thông tin cơ bản của tin tức
       news.title = data.title || news.title;
       if (data.thumbnailBase64) {
         news.thumbnail = data.thumbnailBase64;
       }
       news.status = data.status || news.status;
-      news.newsType = data.newsType || news.newsType; // ✅ ok
+      news.newsType = data.newsType || news.newsType;
       await news.save();
 
+      // Nếu có gửi danh sách block mới thì xóa block cũ và tạo lại
       if (Array.isArray(data.blocks)) {
         await db.News_Details.destroy({ where: { newsId: news.id } });
 
         for (let i = 0; i < data.blocks.length; i++) {
-          let block = data.blocks[i];
+          const block = data.blocks[i];
           await db.News_Details.create({
             newsId: news.id,
             blockType: block.blockType,
@@ -190,7 +199,7 @@ let updateNews = (data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "Update News Success",
+        errMessage: "Cập nhật tin tức thành công",
       });
     } catch (e) {
       reject(e);
@@ -198,15 +207,16 @@ let updateNews = (data) => {
   });
 };
 
+// Xóa tin tức theo ID
 let deleteNews = (newsId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let foundNews = await db.News.findOne({ where: { id: newsId } });
+      const foundNews = await db.News.findOne({ where: { id: newsId } });
 
       if (!foundNews) {
         return resolve({
           errCode: 1,
-          errMessage: "News not found",
+          errMessage: "Không tìm thấy tin tức",
         });
       }
 
@@ -214,7 +224,7 @@ let deleteNews = (newsId) => {
 
       resolve({
         errCode: 0,
-        errMessage: "News deleted",
+        errMessage: "Xóa tin tức thành công",
       });
     } catch (e) {
       reject(e);

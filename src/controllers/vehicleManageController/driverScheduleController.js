@@ -1,85 +1,96 @@
+// src/controllers/vehicleManageController/driverScheduleController.js
 import driverScheduleServices from "../../services/vehicleManageServices/driverScheduleServices.js";
 
+// Lấy tất cả lịch tài xế
 let getAllDriverSchedules = async (req, res) => {
   try {
     const { userId } = req.query;
 
-    let result;
-    if (userId) {
-      // ✅ Nếu có userId → chỉ lấy lịch của tài xế đó
-      result = await driverScheduleServices.getDriverSchedulesByUser(userId);
-    } else {
-      // ✅ Nếu không có userId → admin lấy toàn bộ lịch
-      result = await driverScheduleServices.getAllDriverSchedules();
-    }
+    const result = userId
+      ? await driverScheduleServices.getDriverSchedulesByUser(userId)
+      : await driverScheduleServices.getAllDriverSchedules();
 
     return res.status(200).json(result);
   } catch (e) {
-    console.error("❌ getAllDriverSchedules error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("Lỗi lấy danh sách lịch tài xế:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
+// Lấy lịch tài xế theo ID
 let getDriverScheduleById = async (req, res) => {
   try {
-    let id = req.params.id;
-    let result = await driverScheduleServices.getDriverScheduleById(id);
+    const result = await driverScheduleServices.getDriverScheduleById(
+      req.params.id
+    );
     return res.status(200).json(result);
   } catch (e) {
-    console.error("getDriverScheduleById error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("Lỗi lấy lịch tài xế theo ID:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
+// Tạo lịch tài xế mới
 let createDriverSchedule = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await driverScheduleServices.createDriverSchedule(data);
+    const result = await driverScheduleServices.createDriverSchedule(req.body);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("createDriverSchedule error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("Lỗi tạo lịch tài xế:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
+// Cập nhật lịch tài xế
 let updateDriverSchedule = async (req, res) => {
   try {
-    let data = req.body;
-    let result = await driverScheduleServices.updateDriverSchedule(data);
+    const result = await driverScheduleServices.updateDriverSchedule(req.body);
     return res.status(200).json(result);
   } catch (e) {
-    console.error("updateDriverSchedule error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("Lỗi cập nhật lịch tài xế:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
+// Xóa lịch tài xế
 let deleteDriverSchedule = async (req, res) => {
   try {
-    let id = req.params.id;
-    let result = await driverScheduleServices.deleteDriverSchedule(id);
+    const result = await driverScheduleServices.deleteDriverSchedule(
+      req.params.id
+    );
     return res.status(200).json(result);
   } catch (e) {
-    console.error("deleteDriverSchedule error:", e);
-    return res
-      .status(500)
-      .json({ errCode: -1, errMessage: "Error from server" });
+    console.error("Lỗi xóa lịch tài xế:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 
+// Lấy tất cả tài xế
 const getAllDrivers = async (req, res) => {
   try {
-    const data = await driverScheduleServices.getAllDrivers();
-    res.status(200).json(data);
+    const result = await driverScheduleServices.getAllDrivers();
+    return res.status(200).json(result);
   } catch (e) {
-    res.status(500).json({ errCode: 1, errMessage: e.message });
+    console.error("Lỗi lấy danh sách tài xế:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
   }
 };
 

@@ -1,57 +1,67 @@
-import authService from "../../services/userManageServices/authServices";
+// src/controllers/userManageController/authController.js
+import authService from "../../services/userManageServices/authServices.js";
 
+// Đăng nhập người dùng
 let loginUser = async (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-
+  const { email, password } = req.body;
+  // Kiểm tra thiếu dữ liệu
   if (!email || !password) {
-    return res.status(500).json({
+    return res.status(400).json({
       errCode: 1,
-      message: "Missing inputs parameter!",
+      errMessage: "Thiếu thông tin bắt buộc",
     });
   }
 
-  let userData = await authService.handleUserLogin(email, password);
+  const userData = await authService.handleUserLogin(email, password);
 
   return res.status(200).json({
     errCode: userData.errCode,
-    message: userData.errMessage,
-    user: userData.user ? userData.user : {},
+    errMessage: userData.errMessage,
+    user: userData.user || {},
   });
 };
 
+// Đăng ký người dùng
 let registerUser = async (req, res) => {
-  console.log("req.body:", req.body);
-  let message = await authService.handleUserRegister(req.body);
-  return res.status(200).json(message);
+  try {
+    const result = await authService.handleUserRegister(req.body);
+    return res.status(200).json(result);
+  } catch (e) {
+    console.error("Lỗi đăng ký tài khoản:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
+  }
 };
 
+// Quên mật khẩu
 let forgotPassword = async (req, res) => {
-  let { email } = req.body;
-  let result = await authService.handleForgotPassword(email);
+  const { email } = req.body;
+
+  const result = await authService.handleForgotPassword(email);
   return res.status(200).json(result);
 };
 
+// Đặt lại mật khẩu
 let resetPassword = async (req, res) => {
-  console.log("🔍 [Controller] ResetPassword body:", req.body);
+  const { email, otp, newPassword } = req.body;
 
-  let { email, otp, newPassword } = req.body;
+  // Kiểm tra thiếu dữ liệu
   if (!email || !otp || !newPassword) {
     return res.status(400).json({
       errCode: 1,
-      errMessage: "Missing parameter!",
+      errMessage: "Thiếu thông tin bắt buộc",
     });
   }
 
-  let result = await authService.handleResetPassword(email, otp, newPassword);
+  const result = await authService.handleResetPassword(email, otp, newPassword);
   return res.status(200).json(result);
 };
 
-module.exports = {
-  loginUser: loginUser,
-  registerUser: registerUser,
-  forgotPassword: forgotPassword,
-  resetPassword: resetPassword,
-  forgotPassword: forgotPassword,
-  resetPassword: resetPassword,
+export default {
+  loginUser,
+  registerUser,
+  forgotPassword,
+  resetPassword,
 };

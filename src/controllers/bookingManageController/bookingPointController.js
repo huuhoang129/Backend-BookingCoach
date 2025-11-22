@@ -1,8 +1,7 @@
+// src/controllers/bookingManageController/bookingPointController.js
 import bookingPointService from "../../services/bookingManageServices/bookingPointService.js";
 
-/**
- * Lấy danh sách điểm đón/trả
- */
+// Lấy điểm đón/trả theo booking ID
 const getPointsByBooking = async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
@@ -17,9 +16,7 @@ const getPointsByBooking = async (req, res) => {
   }
 };
 
-/**
- * Thêm điểm đón/trả
- */
+// Thêm điểm đón/trả
 const addPoint = async (req, res) => {
   try {
     const data = req.body;
@@ -34,9 +31,7 @@ const addPoint = async (req, res) => {
   }
 };
 
-/**
- * Cập nhật điểm đón/trả
- */
+// Cập nhật điểm đón/trả
 const updatePoint = async (req, res) => {
   try {
     const data = req.body;
@@ -51,9 +46,7 @@ const updatePoint = async (req, res) => {
   }
 };
 
-/**
- * Xóa điểm đón/trả
- */
+// Xóa điểm đón/trả
 const deletePoint = async (req, res) => {
   try {
     const id = req.params.id;

@@ -1,5 +1,6 @@
-/* prettier-ignore-file */
 import express from "express";
+import authenticate from "../middleware/auth/authenticate.js";
+import authorize from "../middleware/auth/authorize.js";
 /* ======================= SYSTEM MANAGE ======================= */
 import bannerController from "../controllers/systemManageController/bannerController.js";
 import staticPageController from "../controllers/systemManageController/staticPageController.js";
@@ -32,6 +33,7 @@ import bookingPointController from "../controllers/bookingManageController/booki
 import bookingSeatController from "../controllers/bookingManageController/bookingSeatController.js";
 import bookingPaymentController from "../controllers/bookingManageController/bookingPaymentController.js";
 import BookingNotification from "../controllers/bookingManageController/bookingNotificationController.js";
+import bookingVerify from "../controllers/bookingManageController/bookingVerifyController.js";
 
 /* ======================= PAYMENT MANAGE ======================= */
 import paymentController from "../controllers/paymentManageController/paymentController.js";
@@ -218,7 +220,7 @@ let initWebRoutes = (app) => {
     "/api/v1/driver-schedules/:id",
     driverScheduleController.deleteDriverSchedule
   );
-  router.get("/api/v1/drivers/all", driverScheduleController.getAllDrivers);
+  router.get("/api/v1/drivers-all", driverScheduleController.getAllDrivers);
 
   /* ========== BOOKING MANAGE ========== */
   router.get("/api/v1/bookings", bookingController.getAllBookings);
@@ -226,6 +228,9 @@ let initWebRoutes = (app) => {
   router.post("/api/v1/bookings", bookingController.createBooking);
   router.put("/api/v1/bookings", bookingController.updateBookingStatus);
   router.delete("/api/v1/bookings/:id", bookingController.deleteBooking);
+
+  // verify booking
+  router.get("/api/v1/booking/verify", bookingVerify.verifyBooking);
 
   // Booking details
   router.get(

@@ -1,6 +1,8 @@
+// src/services/emailServices.js
 require("dotenv").config();
 import nodemailer from "nodemailer";
 
+// Tạo transporter để gửi email
 let createTransporter = () => {
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -13,6 +15,7 @@ let createTransporter = () => {
   });
 };
 
+// Gửi email khôi phục mật khẩu
 let sendPasswordResetEmail = async (dataSend) => {
   let transporter = createTransporter();
 
@@ -30,6 +33,7 @@ let sendPasswordResetEmail = async (dataSend) => {
   });
 };
 
+// Gửi email xác nhận thanh toán thành công
 let sendPaymentSuccessEmail = async (dataSend) => {
   let transporter = createTransporter();
 

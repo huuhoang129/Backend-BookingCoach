@@ -1,11 +1,11 @@
 import db from "../../models/index.js";
 import dayjs from "dayjs";
 
-// Lấy tất cả schedules
+// Lấy danh sách tất cả lịch chạy
 let getAllSchedules = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      let schedules = await db.CoachSchedule.findAll({
+      const schedules = await db.CoachSchedule.findAll({
         include: [
           {
             model: db.CoachRoute,
@@ -31,25 +31,29 @@ let getAllSchedules = () => {
         nest: true,
       });
 
-      resolve({ errCode: 0, errMessage: "OK", data: schedules });
+      resolve({
+        errCode: 0,
+        errMessage: "Lấy danh sách lịch chạy thành công",
+        data: schedules,
+      });
     } catch (e) {
       reject(e);
     }
   });
 };
 
-// Lấy schedule theo ID
+// Lấy chi tiết lịch chạy theo ID
 let getScheduleById = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!id) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameter: id",
+          errMessage: "Thiếu tham số id",
         });
       }
 
-      let schedule = await db.CoachSchedule.findOne({
+      const schedule = await db.CoachSchedule.findOne({
         where: { id },
         include: [
           { model: db.CoachRoute, as: "route" },
@@ -61,62 +65,98 @@ let getScheduleById = (id) => {
       });
 
       if (!schedule) {
-        return resolve({ errCode: 2, errMessage: "Schedule not found" });
-      }
-
-      resolve({ errCode: 0, errMessage: "OK", data: schedule });
-    } catch (e) {
-      reject(e);
-    }
-  });
-};
-
-// Tạo mới schedule
-let createSchedule = (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (
-        !data.coachRouteId ||
-        !data.vehicleId ||
-        !data.tripPriceId ||
-        !data.startTime
-      ) {
         return resolve({
-          errCode: 1,
-          errMessage: "Missing required parameters",
+          errCode: 2,
+          errMessage: "Không tìm thấy lịch chạy",
         });
       }
 
-      await db.CoachSchedule.create({
-        coachRouteId: data.coachRouteId,
-        vehicleId: data.vehicleId,
-        tripPriceId: data.tripPriceId,
-        startTime: data.startTime,
-        totalTime: data.totalTime || null,
-        status: data.status || "ACTIVE",
+      resolve({
+        errCode: 0,
+        errMessage: "Lấy thông tin lịch chạy thành công",
+        data: schedule,
       });
-
-      resolve({ errCode: 0, errMessage: "Schedule created successfully" });
     } catch (e) {
       reject(e);
     }
   });
 };
 
-// Cập nhật schedule
+// Tạo mới lịch chạy
+let createSchedule = async (data) => {
+  try {
+    const {
+      coachRouteId,
+      vehicleId,
+      tripPriceId,
+      startTime,
+      totalTime,
+      status,
+    } = data;
+
+    // Kiểm tra tham số bắt buộc
+    if (!coachRouteId || !vehicleId || !tripPriceId || !startTime) {
+      return {
+        errCode: 1,
+        errMessage: "Thiếu các tham số bắt buộc",
+      };
+    }
+
+    // Kiểm tra trùng lịch cho cùng xe, tuyến, thời gian
+    const existingSchedule = await db.CoachSchedule.findOne({
+      where: {
+        coachRouteId,
+        vehicleId,
+        startTime,
+      },
+    });
+
+    if (existingSchedule) {
+      return {
+        errCode: 2,
+        errMessage: `Xe ${vehicleId} đã có lịch chạy tuyến này vào ${startTime}.`,
+      };
+    }
+
+    await db.CoachSchedule.create({
+      coachRouteId,
+      vehicleId,
+      tripPriceId,
+      startTime,
+      totalTime: totalTime || null,
+      status: status || "ACTIVE",
+    });
+
+    return {
+      errCode: 0,
+      errMessage: "Tạo lịch chạy thành công",
+    };
+  } catch (e) {
+    console.error("Lỗi khi tạo lịch chạy:", e);
+    throw e;
+  }
+};
+
+// Cập nhật lịch chạy
 let updateSchedule = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.id) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameter: id",
+          errMessage: "Thiếu tham số id",
         });
       }
 
-      let schedule = await db.CoachSchedule.findOne({ where: { id: data.id } });
+      const schedule = await db.CoachSchedule.findOne({
+        where: { id: data.id },
+      });
+
       if (!schedule) {
-        return resolve({ errCode: 2, errMessage: "Schedule not found" });
+        return resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy lịch chạy",
+        });
       }
 
       await db.CoachSchedule.update(
@@ -131,43 +171,55 @@ let updateSchedule = (data) => {
         { where: { id: data.id } }
       );
 
-      resolve({ errCode: 0, errMessage: "Schedule updated successfully" });
+      resolve({
+        errCode: 0,
+        errMessage: "Cập nhật lịch chạy thành công",
+      });
     } catch (e) {
       reject(e);
     }
   });
 };
 
-// Xóa schedule
+// Xóa lịch chạy
 let deleteSchedule = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let schedule = await db.CoachSchedule.findOne({ where: { id } });
+      const schedule = await db.CoachSchedule.findOne({ where: { id } });
+
       if (!schedule) {
-        return resolve({ errCode: 2, errMessage: "Schedule doesn't exist" });
+        return resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy lịch chạy",
+        });
       }
 
       await db.CoachSchedule.destroy({ where: { id } });
-      resolve({ errCode: 0, errMessage: "Schedule deleted successfully" });
+
+      resolve({
+        errCode: 0,
+        errMessage: "Xóa lịch chạy thành công",
+      });
     } catch (e) {
       reject(e);
     }
   });
 };
 
-// Sinh trips từ schedules
+// Sinh các chuyến xe CoachTrip từ lịch chạy (trong 7 ngày tới)
 let generateTripsFromSchedules = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      let schedules = await db.CoachSchedule.findAll({
+      const schedules = await db.CoachSchedule.findAll({
         where: { status: "ACTIVE" },
       });
 
       for (let s of schedules) {
         for (let i = 0; i < 7; i++) {
-          let date = dayjs().add(i, "day").format("YYYY-MM-DD");
+          const date = dayjs().add(i, "day").format("YYYY-MM-DD");
 
-          let exist = await db.CoachTrip.findOne({
+          // Kiểm tra xem chuyến đã tồn tại chưa
+          const exist = await db.CoachTrip.findOne({
             where: {
               coachRouteId: s.coachRouteId,
               vehicleId: s.vehicleId,
@@ -177,6 +229,7 @@ let generateTripsFromSchedules = () => {
           });
           if (exist) continue;
 
+          // Tạo chuyến xe mới
           await db.CoachTrip.create({
             coachRouteId: s.coachRouteId,
             vehicleId: s.vehicleId,
@@ -189,7 +242,10 @@ let generateTripsFromSchedules = () => {
         }
       }
 
-      resolve({ errCode: 0, errMessage: "Trips generated successfully" });
+      resolve({
+        errCode: 0,
+        errMessage: "Sinh chuyến xe từ lịch chạy thành công",
+      });
     } catch (e) {
       reject(e);
     }

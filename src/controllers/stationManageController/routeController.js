@@ -1,44 +1,50 @@
+// src/controllers/stationManageController/routeController.js
 import routeService from "../../services/stationManageServices/routeServices";
 
+// Lấy danh sách tất cả các tuyến đường
 let getAllRoutes = async (req, res) => {
   try {
-    let routes = await routeService.getAllRoutes();
+    const routes = await routeService.getAllRoutes();
     return res.status(200).json(routes);
   } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from the server",
-    });
-  }
-};
-
-let getRouteById = async (req, res) => {
-  try {
-    let routeId = req.params.id;
-    let result = await routeService.getRouteById(routeId);
-    return res.status(200).json(result);
-  } catch (e) {
+    console.error("Lỗi khi lấy danh sách tuyến:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+// Lấy thông tin tuyến đường theo ID
+let getRouteById = async (req, res) => {
+  try {
+    const routeId = req.params.id;
+    const result = await routeService.getRouteById(routeId);
+    return res.status(200).json(result);
+  } catch (e) {
+    console.error("Lỗi khi lấy tuyến theo ID:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
+    });
+  }
+};
+
+// Tạo mới tuyến đường
 let createRoute = async (req, res) => {
   try {
-    let route = await routeService.createRoute(req.body);
-    return res.status(200).json(route);
+    const result = await routeService.createRoute(req.body);
+    return res.status(200).json(result);
   } catch (e) {
-    console.log(e);
-    return res.status(200).json({
+    console.error("Lỗi khi tạo tuyến đường:", e);
+    return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from the server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+// Cập nhật thông tin tuyến đường
 let updateRoute = async (req, res) => {
   try {
     const result = await routeService.updateRoute({
@@ -48,24 +54,35 @@ let updateRoute = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (e) {
-    console.error("updateRoute error:", e);
+    console.error("Lỗi khi cập nhật tuyến đường:", e);
     return res.status(500).json({
       errCode: -1,
-      errMessage: "Error from server",
+      errMessage: "Lỗi hệ thống",
     });
   }
 };
 
+// Xóa tuyến đường
 let deleteRoute = async (req, res) => {
-  const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({
-      errCode: 1,
-      errMessage: "Missing required parameter!",
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        errCode: 1,
+        errMessage: "Thiếu tham số id",
+      });
+    }
+
+    const result = await routeService.deleteRoute(id);
+    return res.status(200).json(result);
+  } catch (e) {
+    console.error("Lỗi khi xóa tuyến đường:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi hệ thống",
     });
   }
-  let message = await routeService.deleteRoute(id);
-  return res.status(200).json(message);
 };
 
 export default {

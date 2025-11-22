@@ -1,9 +1,22 @@
 // src/utils/seatGenerator.js
+
+// Ánh xạ type từ FE (uppercase) sang type dùng nội bộ
+const TYPE_MAP = {
+  NORMAL: "Normal",
+  SLEEPER: "Sleeper",
+  DOUBLESLEEPER: "DoubleSleeper",
+  LIMOUSINE: "Limousine",
+};
+
 export const generateSeats = (vehicleId, type) => {
   const seats = [];
 
-  switch (type) {
+  // Chuẩn hóa loại xe nhận từ FE
+  const mappedType = TYPE_MAP[type] || type;
+
+  switch (mappedType) {
     case "Limousine":
+      // 9 ghế limousine tầng 1
       for (let i = 1; i <= 9; i++) {
         seats.push({
           vehicleId,
@@ -14,6 +27,7 @@ export const generateSeats = (vehicleId, type) => {
       break;
 
     case "Normal":
+      // 45 ghế ngồi tầng 1
       for (let i = 1; i <= 45; i++) {
         seats.push({
           vehicleId,
@@ -24,7 +38,7 @@ export const generateSeats = (vehicleId, type) => {
       break;
 
     case "Sleeper":
-      // 36 ghế: 18 tầng 1 (1–18) + 18 tầng 2 (19–36)
+      // Giường đơn: 36 ghế (18 tầng 1 + 18 tầng 2)
       for (let i = 1; i <= 18; i++) {
         seats.push({
           vehicleId,
@@ -42,7 +56,7 @@ export const generateSeats = (vehicleId, type) => {
       break;
 
     case "DoubleSleeper":
-      // 22 ghế: 11 tầng 1 (1–11) + 11 tầng 2 (12–22)
+      // Giường đôi: 22 ghế (11 tầng 1 + 11 tầng 2)
       for (let i = 1; i <= 11; i++) {
         seats.push({
           vehicleId,
@@ -60,7 +74,8 @@ export const generateSeats = (vehicleId, type) => {
       break;
 
     default:
-      console.warn(`⚠️ Loại xe không xác định: ${type}`);
+      // Loại xe không hợp lệ hoặc chưa hỗ trợ
+      console.warn(`Loại xe không xác định khi tạo ghế: ${mappedType}`);
       break;
   }
 

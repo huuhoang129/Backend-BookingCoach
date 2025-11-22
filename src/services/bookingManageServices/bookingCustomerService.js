@@ -1,3 +1,4 @@
+// src/services/bookingManageServices/bookingCustomerService.js
 import db from "../../models/index.js";
 
 // Lấy danh sách khách theo bookingId
@@ -7,10 +8,11 @@ let getCustomersByBooking = (bookingId) => {
       if (!bookingId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameter: bookingId",
+          errMessage: "Thiếu tham số: bookingId",
         });
       }
 
+      // Lấy danh sách khách của booking
       let customers = await db.BookingCustomers.findAll({
         where: { bookingId },
         raw: true,
@@ -18,7 +20,7 @@ let getCustomersByBooking = (bookingId) => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách thành công",
         data: customers,
       });
     } catch (e) {
@@ -27,17 +29,18 @@ let getCustomersByBooking = (bookingId) => {
   });
 };
 
-// Thêm khách cho 1 booking
+// Thêm khách vào booking
 let addCustomer = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.bookingId || !data.fullName || !data.phone) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
+      // Tạo bản ghi khách hàng
       let customer = await db.BookingCustomers.create({
         bookingId: data.bookingId,
         fullName: data.fullName,
@@ -47,7 +50,7 @@ let addCustomer = (data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "Customer added successfully",
+        errMessage: "Thêm khách thành công",
         data: customer,
       });
     } catch (e) {
@@ -63,10 +66,11 @@ let updateCustomer = (data) => {
       if (!data.id || !data.fullName || !data.phone) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
+      // Cập nhật khách theo id
       const [updated] = await db.BookingCustomers.update(
         {
           fullName: data.fullName,
@@ -77,12 +81,15 @@ let updateCustomer = (data) => {
       );
 
       if (updated === 0) {
-        return resolve({ errCode: 2, errMessage: "Customer not found" });
+        return resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy khách hàng",
+        });
       }
 
       resolve({
         errCode: 0,
-        errMessage: "Customer updated successfully",
+        errMessage: "Cập nhật khách hàng thành công",
       });
     } catch (e) {
       reject(e);
@@ -90,23 +97,25 @@ let updateCustomer = (data) => {
   });
 };
 
-// Xóa khách
+// Xóa khách theo id
 let deleteCustomer = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Kiểm tra khách tồn tại không
       let customer = await db.BookingCustomers.findOne({ where: { id } });
       if (!customer) {
         return resolve({
           errCode: 2,
-          errMessage: "Customer not found",
+          errMessage: "Không tìm thấy khách hàng để xóa",
         });
       }
 
+      // Xóa khách
       await db.BookingCustomers.destroy({ where: { id } });
 
       resolve({
         errCode: 0,
-        errMessage: "Customer deleted successfully",
+        errMessage: "Xóa khách hàng thành công",
       });
     } catch (e) {
       reject(e);

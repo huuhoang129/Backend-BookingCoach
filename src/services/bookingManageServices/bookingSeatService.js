@@ -14,7 +14,7 @@ let getSeatsByBooking = async (bookingId) => {
       where: { bookingId },
       include: [
         { model: db.Seat, as: "seat" },
-        { model: db.CoachTrip, as: "trip" }, // ✅ thêm để biết ghế thuộc chuyến nào
+        { model: db.CoachTrip, as: "trip" },
       ],
       raw: false,
       nest: true,

@@ -1,10 +1,11 @@
+// src/services/tripManageServices/tripPriceServices.js
 import db from "../../models/index.js";
 
-// Lấy tất cả TripPrices
+// Lấy toàn bộ danh sách giá vé theo tuyến
 let getAllTripPrices = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      let prices = await db.TripPrices.findAll({
+      const prices = await db.TripPrices.findAll({
         include: [
           {
             model: db.CoachRoute,
@@ -30,7 +31,7 @@ let getAllTripPrices = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách giá vé thành công",
         data: prices,
       });
     } catch (e) {
@@ -39,18 +40,18 @@ let getAllTripPrices = () => {
   });
 };
 
-// Lấy TripPrice theo ID
+// Lấy giá vé theo ID
 let getTripPriceById = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!id) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameter: id",
+          errMessage: "Thiếu tham số bắt buộc: id",
         });
       }
 
-      let price = await db.TripPrices.findOne({
+      const price = await db.TripPrices.findOne({
         where: { id },
         include: [
           {
@@ -65,13 +66,13 @@ let getTripPriceById = (id) => {
       if (!price) {
         return resolve({
           errCode: 2,
-          errMessage: "TripPrice not found",
+          errMessage: "Không tìm thấy giá vé",
         });
       }
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy thông tin giá vé thành công",
         data: price,
       });
     } catch (e) {
@@ -80,9 +81,11 @@ let getTripPriceById = (id) => {
   });
 };
 
+// Tạo mới giá vé
 let createTripPrice = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Kiểm tra tham số đầu vào
       if (
         !data.coachRouteId ||
         !data.seatType ||
@@ -95,6 +98,7 @@ let createTripPrice = (data) => {
         });
       }
 
+      // Kiểm tra trùng giá vé
       const existing = await db.TripPrices.findOne({
         where: {
           coachRouteId: data.coachRouteId,
@@ -107,11 +111,11 @@ let createTripPrice = (data) => {
         return resolve({
           errCode: 2,
           errMessage:
-            "Giá vé cho tuyến, loại ghế và loại chuyến này đã tồn tại!",
+            "Giá vé cho tuyến, loại ghế và loại chuyến này đã tồn tại",
         });
       }
 
-      // 🟢 Tạo mới nếu chưa có
+      // Tạo mới giá vé
       await db.TripPrices.create({
         coachRouteId: data.coachRouteId,
         seatType: data.seatType,
@@ -129,7 +133,7 @@ let createTripPrice = (data) => {
   });
 };
 
-// Cập nhật TripPrice
+// Cập nhật giá vé
 let updateTripPrice = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -142,18 +146,20 @@ let updateTripPrice = (data) => {
       ) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu tham số bắt buộc",
         });
       }
 
-      let price = await db.TripPrices.findOne({ where: { id: data.id } });
+      // Kiểm tra tồn tại giá vé
+      const price = await db.TripPrices.findOne({ where: { id: data.id } });
       if (!price) {
         return resolve({
           errCode: 2,
-          errMessage: "TripPrice not found",
+          errMessage: "Không tìm thấy giá vé cần cập nhật",
         });
       }
 
+      // Cập nhật giá vé
       await db.TripPrices.update(
         {
           coachRouteId: data.coachRouteId,
@@ -166,7 +172,7 @@ let updateTripPrice = (data) => {
 
       resolve({
         errCode: 0,
-        errMessage: "TripPrice updated successfully",
+        errMessage: "Cập nhật giá vé thành công",
       });
     } catch (e) {
       reject(e);
@@ -174,23 +180,24 @@ let updateTripPrice = (data) => {
   });
 };
 
-// Xóa TripPrice
+// Xóa giá vé
 let deleteTripPrice = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let price = await db.TripPrices.findOne({ where: { id } });
+      const price = await db.TripPrices.findOne({ where: { id } });
       if (!price) {
         return resolve({
           errCode: 2,
-          errMessage: "TripPrice doesn't exist",
+          errMessage: "Giá vé không tồn tại",
         });
       }
 
+      // Xóa giá vé
       await db.TripPrices.destroy({ where: { id } });
 
       resolve({
         errCode: 0,
-        errMessage: "TripPrice deleted successfully",
+        errMessage: "Xóa giá vé thành công",
       });
     } catch (e) {
       reject(e);

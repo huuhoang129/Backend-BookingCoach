@@ -1,6 +1,8 @@
+// src/services/bookingManageServices/bookingService.js
 import db from "../../models/index.js";
 import paymentService from "../bookingManageServices/bookingPaymentService.js";
 
+// Lấy danh sách tất cả vé đặt
 let getAllBookings = async (userId = null) => {
   try {
     const whereCondition = userId ? { userId } : {};
@@ -56,19 +58,24 @@ let getAllBookings = async (userId = null) => {
       nest: true,
     });
 
-    return { errCode: 0, errMessage: "OK", data: bookings };
+    return {
+      errCode: 0,
+      errMessage: "Lấy danh sách vé đặt thành công",
+      data: bookings,
+    };
   } catch (e) {
-    console.error("❌ getAllBookings error:", e);
+    console.error("getAllBookings error:", e);
     throw e;
   }
 };
 
+// Lấy chi tiết một vé đặt theo id
 let getBookingById = async (bookingId) => {
   try {
     if (!bookingId) {
       return {
         errCode: 1,
-        errMessage: "Missing required parameter: bookingId",
+        errMessage: "Thiếu tham số bookingId",
         data: null,
       };
     }
@@ -108,14 +115,23 @@ let getBookingById = async (bookingId) => {
     });
 
     if (!booking)
-      return { errCode: 2, errMessage: "Booking not found", data: null };
+      return {
+        errCode: 2,
+        errMessage: "Không tìm thấy vé đặt",
+        data: null,
+      };
 
-    return { errCode: 0, errMessage: "OK", data: booking };
+    return {
+      errCode: 0,
+      errMessage: "Lấy thông tin vé đặt thành công",
+      data: booking,
+    };
   } catch (e) {
     throw e;
   }
 };
 
+// Sinh mã đặt vé dạng BKYYYYMMDDxxxx
 const generateBookingCode = () => {
   const date = new Date();
   const y = date.getFullYear();
@@ -125,15 +141,19 @@ const generateBookingCode = () => {
   return `BK${y}${m}${d}${rand}`;
 };
 
+// Tạo mới một vé đặt kèm khách, điểm đón/trả, ghế, thanh toán
 let createBooking = async (data) => {
+  // Kiểm tra dữ liệu đầu vào trước khi mở transaction
+  if (!data.coachTripId || !data.seats || !data.totalAmount) {
+    return { errCode: 1, errMessage: "Thiếu tham số bắt buộc" };
+  }
+
   const t = await db.sequelize.transaction();
   try {
-    if (!data.coachTripId || !data.seats || !data.totalAmount) {
-      return { errCode: 1, errMessage: "Missing required parameters" };
-    }
-
     const bookingCode = generateBookingCode();
-    const expireAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expireAt = new Date(Date.now() + 10 * 60 * 1000); // hết hạn sau 10 phút
+
+    // Tạo booking chính
     const newBooking = await db.Bookings.create(
       {
         userId: data.userId || null,
@@ -146,6 +166,7 @@ let createBooking = async (data) => {
       { transaction: t }
     );
 
+    // Lưu danh sách hành khách
     if (data.customers?.length > 0) {
       await db.BookingCustomers.bulkCreate(
         data.customers.map((c) => ({
@@ -158,6 +179,7 @@ let createBooking = async (data) => {
       );
     }
 
+    // Lưu điểm đón / trả khách
     if (data.points?.length > 0) {
       await db.BookingPoints.bulkCreate(
         data.points.map((p) => ({
@@ -171,12 +193,16 @@ let createBooking = async (data) => {
       );
     }
 
+    // Giữ ghế (HOLD) và kiểm tra trùng
     if (data.seats?.length > 0) {
       for (let s of data.seats) {
         const seat = await db.Seat.findByPk(s.seatId, { transaction: t });
         if (!seat) {
           await t.rollback();
-          return { errCode: 2, errMessage: `Seat ${s.seatId} not found` };
+          return {
+            errCode: 2,
+            errMessage: `Không tìm thấy ghế với id ${s.seatId}`,
+          };
         }
 
         const existing = await db.BookingSeats.findOne({
@@ -191,7 +217,7 @@ let createBooking = async (data) => {
           await t.rollback();
           return {
             errCode: 3,
-            errMessage: `Seat ${seat.name} has already been booked for this trip.`,
+            errMessage: `Ghế ${seat.name} đã được đặt cho chuyến này`,
           };
         }
 
@@ -208,6 +234,7 @@ let createBooking = async (data) => {
       }
     }
 
+    // Tạo bản ghi thanh toán nếu chọn thanh toán tiền mặt
     if (data.paymentMethod === "CASH") {
       await paymentService.createPayment(
         {
@@ -222,7 +249,7 @@ let createBooking = async (data) => {
     await t.commit();
     return {
       errCode: 0,
-      errMessage: "Booking created successfully",
+      errMessage: "Tạo vé đặt thành công",
       data: newBooking,
     };
   } catch (e) {
@@ -231,25 +258,28 @@ let createBooking = async (data) => {
   }
 };
 
+// Cập nhật trạng thái vé đặt và trạng thái ghế tương ứng
 let updateBookingStatus = async (bookingId, status) => {
+  // Kiểm tra đầu vào trước
+  if (!bookingId || !status) {
+    return { errCode: 1, errMessage: "Thiếu tham số bắt buộc" };
+  }
+
   const t = await db.sequelize.transaction();
   try {
-    if (!bookingId || !status) {
-      return { errCode: 1, errMessage: "Missing required parameters" };
-    }
-
     const booking = await db.Bookings.findByPk(bookingId, { transaction: t });
     if (!booking) {
       await t.rollback();
-      return { errCode: 2, errMessage: "Booking not found" };
+      return { errCode: 2, errMessage: "Không tìm thấy vé đặt" };
     }
 
+    // Cập nhật trạng thái chính của booking
     await db.Bookings.update(
       { status },
       { where: { id: bookingId }, transaction: t }
     );
 
-    // Cập nhật trạng thái ghế trong bảng BookingSeats
+    // Cập nhật trạng thái ghế theo trạng thái booking
     const bookingSeats = await db.BookingSeats.findAll({
       where: { bookingId },
       transaction: t,
@@ -266,31 +296,45 @@ let updateBookingStatus = async (bookingId, status) => {
     }
 
     await t.commit();
-    return { errCode: 0, errMessage: "Booking status updated successfully" };
+    return {
+      errCode: 0,
+      errMessage: "Cập nhật trạng thái vé đặt thành công",
+    };
   } catch (e) {
     await t.rollback();
     throw e;
   }
 };
 
+// Xóa vé đặt và toàn bộ dữ liệu liên quan
 let deleteBooking = async (bookingId) => {
-  const t = await db.sequelize.transaction();
   try {
     const booking = await db.Bookings.findByPk(bookingId);
     if (!booking) {
-      return { errCode: 2, errMessage: "Booking doesn't exist" };
+      return { errCode: 2, errMessage: "Vé đặt không tồn tại" };
     }
 
-    await db.BookingCustomers.destroy({ where: { bookingId }, transaction: t });
-    await db.BookingPoints.destroy({ where: { bookingId }, transaction: t });
-    await db.BookingSeats.destroy({ where: { bookingId }, transaction: t });
-    await db.BookingPayments.destroy({ where: { bookingId }, transaction: t });
-    await db.Bookings.destroy({ where: { id: bookingId }, transaction: t });
+    const t = await db.sequelize.transaction();
+    try {
+      await db.BookingCustomers.destroy({
+        where: { bookingId },
+        transaction: t,
+      });
+      await db.BookingPoints.destroy({ where: { bookingId }, transaction: t });
+      await db.BookingSeats.destroy({ where: { bookingId }, transaction: t });
+      await db.BookingPayments.destroy({
+        where: { bookingId },
+        transaction: t,
+      });
+      await db.Bookings.destroy({ where: { id: bookingId }, transaction: t });
 
-    await t.commit();
-    return { errCode: 0, errMessage: "Booking deleted successfully" };
+      await t.commit();
+      return { errCode: 0, errMessage: "Xóa vé đặt thành công" };
+    } catch (e) {
+      await t.rollback();
+      throw e;
+    }
   } catch (e) {
-    await t.rollback();
     throw e;
   }
 };

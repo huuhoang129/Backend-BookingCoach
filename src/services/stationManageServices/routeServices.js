@@ -1,8 +1,11 @@
+// src/services/stationManageServices/routeServices.js
 import db from "../../models/index.js";
 
+// Lấy toàn bộ tuyến đường
 let getAllRoutes = () => {
   return new Promise(async (resolve, reject) => {
     try {
+      // Lấy danh sách tuyến đường kèm điểm đi / điểm đến
       let routes = await db.CoachRoute.findAll({
         include: [
           {
@@ -21,6 +24,7 @@ let getAllRoutes = () => {
         nest: true,
       });
 
+      // Chuyển ảnh từ Buffer → base64 để trả về frontend
       if (routes && routes.length > 0) {
         routes = routes.map((item) => {
           if (item.imageRouteCoach) {
@@ -33,7 +37,7 @@ let getAllRoutes = () => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy danh sách tuyến đường thành công",
         data: routes,
       });
     } catch (e) {
@@ -42,18 +46,19 @@ let getAllRoutes = () => {
   });
 };
 
+// Lấy chi tiết tuyến đường theo ID
 let getRouteById = (routeId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!routeId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameter: routeId",
+          errMessage: "Thiếu tham số routeId",
           data: null,
         });
       }
 
-      let route = await db.CoachRoute.findOne({
+      const route = await db.CoachRoute.findOne({
         where: { id: routeId },
         include: [
           {
@@ -74,11 +79,12 @@ let getRouteById = (routeId) => {
       if (!route) {
         return resolve({
           errCode: 2,
-          errMessage: "Route not found",
+          errMessage: "Không tìm thấy tuyến đường",
           data: null,
         });
       }
 
+      // Convert ảnh
       if (route.imageRouteCoach) {
         const base64Str = route.imageRouteCoach.toString("base64");
         route.imageRouteCoach = `data:image/png;base64,${base64Str}`;
@@ -86,7 +92,7 @@ let getRouteById = (routeId) => {
 
       resolve({
         errCode: 0,
-        errMessage: "OK",
+        errMessage: "Lấy tuyến đường thành công",
         data: route,
       });
     } catch (e) {
@@ -95,17 +101,19 @@ let getRouteById = (routeId) => {
   });
 };
 
+// Tạo tuyến đường mới
 let createRoute = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.fromLocationId || !data.toLocationId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu dữ liệu bắt buộc",
         });
       }
 
-      let existingRoute = await db.CoachRoute.findOne({
+      // Kiểm tra trùng tuyến
+      const existingRoute = await db.CoachRoute.findOne({
         where: {
           fromLocationId: data.fromLocationId,
           toLocationId: data.toLocationId,
@@ -115,21 +123,22 @@ let createRoute = (data) => {
       if (existingRoute) {
         return resolve({
           errCode: 2,
-          errMessage: "Route already exists with the same from, to",
+          errMessage: "Tuyến đường đã tồn tại",
         });
       }
 
+      // Tạo mới
       await db.CoachRoute.create({
         fromLocationId: data.fromLocationId,
         toLocationId: data.toLocationId,
         imageRouteCoach: data.imageRouteCoach
-          ? Buffer.from(data.imageRouteCoach, "base64") // 👈 convert base64 → Buffer
+          ? Buffer.from(data.imageRouteCoach, "base64")
           : null,
       });
 
       resolve({
         errCode: 0,
-        errMessage: "Route created successfully",
+        errMessage: "Tạo tuyến đường thành công",
       });
     } catch (e) {
       reject(e);
@@ -137,13 +146,14 @@ let createRoute = (data) => {
   });
 };
 
+// Cập nhật tuyến đường
 let updateRoute = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.id || !data.fromLocationId || !data.toLocationId) {
         return resolve({
           errCode: 1,
-          errMessage: "Missing required parameters",
+          errMessage: "Thiếu dữ liệu bắt buộc",
         });
       }
 
@@ -159,32 +169,41 @@ let updateRoute = (data) => {
       );
 
       if (updated === 0) {
-        return resolve({ errCode: 2, errMessage: "Route not found" });
+        return resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy tuyến đường",
+        });
       }
 
-      return resolve({ errCode: 0, errMessage: "Route updated successfully" });
+      resolve({
+        errCode: 0,
+        errMessage: "Cập nhật tuyến đường thành công",
+      });
     } catch (e) {
       reject(e);
     }
   });
 };
 
+// Xóa tuyến đường
 let deleteRoute = (routeId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let route = await db.CoachRoute.findOne({ where: { id: routeId } });
+      const route = await db.CoachRoute.findOne({ where: { id: routeId } });
+
       if (!route) {
-        resolve({
+        return resolve({
           errCode: 2,
-          errMessage: "Route doesn't exist",
-        });
-      } else {
-        await db.CoachRoute.destroy({ where: { id: routeId } });
-        resolve({
-          errCode: 0,
-          errMessage: "Route deleted successfully",
+          errMessage: "Tuyến đường không tồn tại",
         });
       }
+
+      await db.CoachRoute.destroy({ where: { id: routeId } });
+
+      resolve({
+        errCode: 0,
+        errMessage: "Xóa tuyến đường thành công",
+      });
     } catch (e) {
       reject(e);
     }
