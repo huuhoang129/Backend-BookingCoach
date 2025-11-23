@@ -4,7 +4,7 @@ import authService from "../../services/userManageServices/authServices.js";
 // Đăng nhập người dùng
 let loginUser = async (req, res) => {
   const { email, password } = req.body;
-  // Kiểm tra thiếu dữ liệu
+
   if (!email || !password) {
     return res.status(400).json({
       errCode: 1,
@@ -18,9 +18,9 @@ let loginUser = async (req, res) => {
     errCode: userData.errCode,
     errMessage: userData.errMessage,
     user: userData.user || {},
+    token: userData.token || null,
   });
 };
-
 // Đăng ký người dùng
 let registerUser = async (req, res) => {
   try {

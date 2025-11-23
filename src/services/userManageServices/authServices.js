@@ -1,6 +1,8 @@
+// src/services/userManageServices/authServices.js
 import db from "../../models/index.js";
 import bcrypt from "bcryptjs";
 import emailService from "../emailServices.js";
+import { generateToken } from "../../middleware/auth/token.js";
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -37,39 +39,42 @@ let handleUserLogin = (email, password) => {
           "role",
           "status",
         ],
-        where: { email: email },
+        where: { email },
         raw: true,
       });
 
       if (!user) {
-        userData.errCode = 1;
-        userData.errMessage = "Email is not registered!";
-        return resolve(userData);
+        return resolve({
+          errCode: 1,
+          errMessage: "Email is not registered!",
+        });
       }
 
-      // So sánh password
       let checkPassword = await bcrypt.compare(password, user.password);
-
       if (!checkPassword) {
-        userData.errCode = 2;
-        userData.errMessage = "Wrong password!";
-        return resolve(userData);
+        return resolve({
+          errCode: 2,
+          errMessage: "Wrong password!",
+        });
       }
 
-      // Check status (nếu bị khóa thì không cho login)
       if (user.status === "Locking" || user.status === "Locked") {
-        userData.errCode = 3;
-        userData.errMessage = "Your account is locked. Please contact admin!";
-        return resolve(userData);
+        return resolve({
+          errCode: 3,
+          errMessage: "Your account is locked!",
+        });
       }
 
-      // Login thành công
-      delete user.password;
-      userData.errCode = 0;
-      userData.errMessage = "OK";
-      userData.user = user;
+      const token = generateToken(user);
 
-      return resolve(userData);
+      delete user.password;
+
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+        user,
+        token,
+      });
     } catch (e) {
       reject(e);
     }
@@ -105,7 +110,7 @@ let handleUserRegister = (data) => {
       } else {
         let hashPasswordFromBcrypt = await hashUserPassword(data.password);
 
-        // 👉 B1: tạo user trước
+        // Tạo user trước
         let newUser = await db.User.create({
           email: data.email,
           password: hashPasswordFromBcrypt,
@@ -118,7 +123,7 @@ let handleUserRegister = (data) => {
 
         let userCode = generateUserCode(newUser.role, newUser.id);
 
-        // 👉 B3: update lại user với mã vừa tạo
+        // Update lại user với mã vừa tạo
         newUser.userCode = userCode;
         await newUser.save();
 
@@ -186,14 +191,14 @@ let handleResetPassword = (email, otp, newPassword) => {
         return resolve({ errCode: 1, errMessage: "Email không tồn tại!" });
       }
 
-      console.log("🔑 [Service] Found user:", user.id);
+      console.log("[Service] Found user:", user.id);
 
       let tokenData = await db.PasswordReset.findOne({
         where: { userId: user.id, otp },
         order: [["createdAt", "DESC"]],
       });
 
-      console.log("🔑 [Service] Token data:", tokenData);
+      console.log("[Service] Token data:", tokenData);
 
       if (!tokenData) {
         return resolve({
@@ -217,7 +222,7 @@ let handleResetPassword = (email, otp, newPassword) => {
 
       resolve({ errCode: 0, message: "Đặt lại mật khẩu thành công!" });
     } catch (e) {
-      console.error("❌ [Service] ResetPassword error:", e);
+      console.error("[Service] ResetPassword error:", e);
       reject(e);
     }
   });
