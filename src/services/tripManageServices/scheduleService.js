@@ -215,7 +215,7 @@ let generateTripsFromSchedules = () => {
       });
 
       for (let s of schedules) {
-        for (let i = 0; i < 7; i++) {
+        for (let i = 1; i <= 7; i++) {
           const date = dayjs().add(i, "day").format("YYYY-MM-DD");
 
           // Kiểm tra xem chuyến đã tồn tại chưa
