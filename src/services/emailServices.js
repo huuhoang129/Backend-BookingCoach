@@ -40,6 +40,8 @@ let sendPaymentSuccessEmail = async (dataSend) => {
   const seats = dataSend.seats?.length ? dataSend.seats.join(", ") : "Không rõ";
   const pickup = dataSend.pickup || "Chưa chọn";
   const dropoff = dataSend.dropoff || "Chưa chọn";
+  const vehicleName = dataSend.vehicleName || "Không rõ";
+  const licensePlate = dataSend.licensePlate || "Không rõ";
 
   await transporter.sendMail({
     from: '"Booking Coach" <no-reply@bookingcoach.com>',
@@ -51,37 +53,37 @@ let sendPaymentSuccessEmail = async (dataSend) => {
         <p>Xin chào <b>${dataSend.fullName}</b>,</p>
         <p>Đơn đặt vé của bạn đã được xác nhận thành công.</p>
 
+        
         <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;"><b>Mã đặt vé</b></td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${
-              dataSend.bookingCode
-            }</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;"><b>Số tiền</b></td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${Number(
-              dataSend.totalAmount
-            ).toLocaleString()} VND</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;"><b>Phương thức</b></td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${
-              dataSend.method
-            }</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;"><b>Ghế</b></td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${seats}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;"><b>Điểm đón</b></td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${pickup}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;"><b>Điểm trả</b></td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${dropoff}</td>
-          </tr>
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Mã đặt vé</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${
+                dataSend.bookingCode
+              }</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Số tiền</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${Number(
+                dataSend.totalAmount
+              ).toLocaleString()} VND</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Phương thức</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${
+                dataSend.method
+              }</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Ghế</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${seats}</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Loại xe</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${vehicleName}</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Biển số</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${licensePlate}</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Điểm đón</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${pickup}</td></tr>
+
+          <tr><td style="padding:8px; border:1px solid #ddd;"><b>Điểm trả</b></td>
+              <td style="padding:8px; border:1px solid #ddd;">${dropoff}</td></tr>
         </table>
 
         <p style="margin-top:20px;">Cảm ơn bạn đã sử dụng dịch vụ của <b>Booking Coach</b>.</p>

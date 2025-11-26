@@ -1,6 +1,8 @@
+// src/services/bookingManageServices/bookingNotificationService.js
 import db from "../../models/index.js";
 import { Op } from "sequelize";
 
+// Lấy danh sách booking mới từ thời điểm 'since'
 let getNewBookingsService = async (since) => {
   try {
     const sinceTime = since ? new Date(since) : new Date(0);

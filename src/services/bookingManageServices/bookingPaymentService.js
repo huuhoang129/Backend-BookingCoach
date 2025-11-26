@@ -1,6 +1,8 @@
+// src/services/bookingManageServices/bookingPaymentService.js
 import db from "../../models/index.js";
 import emailServices from "../emailServices.js";
 
+// Lấy tất cả payment
 let getAllPayments = async () => {
   try {
     const payments = await db.BookingPayments.findAll({
@@ -22,7 +24,7 @@ let getAllPayments = async () => {
   }
 };
 
-// 🔹 Tạo payment mới
+// Tạo payment mới
 let createPayment = async (data, t) => {
   const payment = await db.BookingPayments.create(
     {
@@ -43,7 +45,7 @@ let createPayment = async (data, t) => {
       { where: { id: data.bookingId }, transaction: t }
     );
 
-    // ✅ Update BookingSeats thay vì Seat
+    // pdate BookingSeats
     await db.BookingSeats.update(
       { status: "SOLD" },
       { where: { bookingId: data.bookingId }, transaction: t }
@@ -57,6 +59,7 @@ let createPayment = async (data, t) => {
   };
 };
 
+// Lấy payment theo bookingId
 let getPaymentByBooking = async (bookingId) => {
   try {
     const payment = await db.BookingPayments.findAll({
@@ -70,7 +73,7 @@ let getPaymentByBooking = async (bookingId) => {
   }
 };
 
-// 🔹 Cập nhật trạng thái payment (SUCCESS / FAILED)
+// Cập nhật trạng thái payment
 let updatePaymentStatus = async (data) => {
   const t = await db.sequelize.transaction();
   try {
@@ -97,7 +100,7 @@ let updatePaymentStatus = async (data) => {
       { where: { id: data.paymentId }, transaction: t }
     );
 
-    // ❌ FAILED → hủy booking + đánh dấu ghế CANCELLED
+    //  hủy booking + đánh dấu ghế CANCELLED
     if (data.status === "FAILED") {
       await db.Bookings.update(
         { status: "CANCELLED" },
@@ -137,6 +140,17 @@ let updatePaymentStatus = async (data) => {
               },
             ],
           },
+          {
+            model: db.CoachTrip,
+            as: "trip",
+            include: [
+              {
+                model: db.Vehicle,
+                as: "vehicle",
+                attributes: ["name", "licensePlate"],
+              },
+            ],
+          },
         ],
         transaction: t,
         raw: false,
@@ -147,17 +161,19 @@ let updatePaymentStatus = async (data) => {
         { where: { id: payment.bookingId }, transaction: t }
       );
 
-      // ✅ Update trạng thái ghế sang SOLD
+      // Update trạng thái ghế sang SOLD
       await db.BookingSeats.update(
         { status: "SOLD" },
         { where: { bookingId: payment.bookingId }, transaction: t }
       );
 
-      // ✅ Gửi email xác nhận
+      // Gửi email xác nhận
       const mainCustomer = booking.customers?.[0];
       if (mainCustomer?.email) {
         const pickup = booking.points.find((p) => p.type === "PICKUP");
         const dropoff = booking.points.find((p) => p.type === "DROPOFF");
+        const vehicleName = booking.trip?.vehicle?.name || "Không rõ";
+        const licensePlate = booking.trip?.vehicle?.licensePlate || "Không rõ";
 
         await emailServices.sendPaymentSuccessEmail({
           receiverEmail: mainCustomer.email,
@@ -170,6 +186,8 @@ let updatePaymentStatus = async (data) => {
           ),
           pickup: pickup?.Location?.nameLocations,
           dropoff: dropoff?.Location?.nameLocations,
+          vehicleName,
+          licensePlate,
         });
       }
     }
