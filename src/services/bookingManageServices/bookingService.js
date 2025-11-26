@@ -10,16 +10,44 @@ let getAllBookings = async (userId = null) => {
     const bookings = await db.Bookings.findAll({
       where: whereCondition,
       include: [
-        { model: db.BookingCustomers, as: "customers" },
+        {
+          model: db.BookingCustomers,
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          as: "customers",
+        },
         {
           model: db.BookingPoints,
           as: "points",
-          include: [{ model: db.Location, as: "Location" }],
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: db.Location,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+              as: "Location",
+            },
+          ],
         },
         {
           model: db.BookingSeats,
           as: "seats",
-          include: [{ model: db.Seat, as: "seat" }],
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: db.Seat,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+              as: "seat",
+            },
+          ],
         },
         {
           model: db.BookingPayments,
@@ -35,20 +63,39 @@ let getAllBookings = async (userId = null) => {
         {
           model: db.CoachTrip,
           as: "trip",
-          attributes: ["id", "startDate", "startTime", "vehicleId"],
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
           include: [
             {
               model: db.CoachRoute,
               as: "route",
+              attributes: {
+                exclude: ["imageRouteCoach", "createdAt", "updatedAt"],
+              },
               include: [
-                { model: db.Location, as: "fromLocation" },
-                { model: db.Location, as: "toLocation" },
+                {
+                  model: db.Location,
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                  as: "fromLocation",
+                },
+                {
+                  model: db.Location,
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                  as: "toLocation",
+                },
               ],
             },
             {
               model: db.Vehicle,
               as: "vehicle",
-              attributes: ["type", "licensePlate", "name"],
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
             },
           ],
         },

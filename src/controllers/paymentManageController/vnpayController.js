@@ -38,7 +38,7 @@ export const vnpayReturn = async (req, res) => {
 
   // Redirect về frontend hiển thị trạng thái thanh toán
   return res.redirect(
-    `http://localhost:5173/payment-result?code=${result.code}`
+    `http://localhost:5173/payment-result?code=${result.code}&bookingId=${result.bookingId}`
   );
 };
 

@@ -1,3 +1,4 @@
+//src/services/paymentManageService/vnpayService.js
 import moment from "moment";
 import qs from "qs";
 import crypto from "crypto";
@@ -127,7 +128,7 @@ export const handleVNPayReturn = async (vnp_Params) => {
     status: newStatus,
     transactionCode: orderId,
   });
-  return { success: true, code: rspCode };
+  return { success: true, code: rspCode, bookingId: payment.bookingId };
 };
 
 export const handleVNPayIPN = async (vnp_Params) => {
