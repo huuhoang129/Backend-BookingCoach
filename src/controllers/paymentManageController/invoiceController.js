@@ -1,7 +1,7 @@
 // src/controllers/paymentManageController/invoiceController.js
 import { getInvoiceFile } from "../../services/paymentManageService/invoiceService.js";
 
-// Tải hóa đơn dưới dạng file PDF
+// Tải hóa đơn dưới dạng file ảnh
 const downloadInvoice = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -14,11 +14,11 @@ const downloadInvoice = async (req, res) => {
       return res.status(500).send(result.errMessage);
     }
 
-    // Trả file PDF cho client
-    return res.download(result.filePath, `Hoa-don-ve-xe-${bookingId}.pdf`);
+    // Trả file ảnh cho client
+    return res.download(result.filePath, `Hoa-don-ve-xe-${bookingId}.png`);
   } catch (e) {
     // Lỗi khi xử lý tải hóa đơn
-    console.error("Lỗi khi tải hóa đơn PDF:", e);
+    console.error("Lỗi khi tải hóa đơn ảnh:", e);
     return res.status(500).send("Lỗi hệ thống");
   }
 };

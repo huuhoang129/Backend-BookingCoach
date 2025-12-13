@@ -1,135 +1,162 @@
+import { createCanvas, loadImage, registerFont } from "canvas";
 import db from "../../models/index.js";
-import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import QRCode from "qrcode";
 
-// Sinh PDF invoice
+registerFont("src/assets/fonts/Montserrat-Regular.ttf", {
+  family: "Montserrat",
+});
+registerFont("src/assets/fonts/Montserrat-SemiBold.ttf", {
+  family: "Montserrat",
+  weight: "600",
+});
+registerFont("src/assets/fonts/Montserrat-Bold.ttf", {
+  family: "Montserrat",
+  weight: "bold",
+});
+
+// Sinh ảnh invoice
 let generateInvoice = async (booking, payment) => {
   const dir = path.resolve("invoices");
   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
-  const doc = new PDFDocument({ margin: 50 });
-  const filePath = path.join(dir, `${booking.bookingCode}.pdf`);
-  const writeStream = fs.createWriteStream(filePath);
-  doc.pipe(writeStream);
+  const width = 900;
+  const height = 1200;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
 
-  // Fonts (nếu không có thì dùng default PDFKit)
-  const fontRegular = path.resolve("src/assets/fonts/Roboto-Regular.ttf");
-  const fontBold = path.resolve("src/assets/fonts/Roboto-Bold.ttf");
-  if (fs.existsSync(fontRegular)) doc.registerFont("Regular", fontRegular);
-  if (fs.existsSync(fontBold)) doc.registerFont("Bold", fontBold);
+  /* Background */
+  ctx.fillStyle = "#f2f4f7";
+  ctx.fillRect(0, 0, width, height);
 
-  // Header
-  doc.rect(0, 0, doc.page.width, 80).fill("#1976d2");
-  doc
-    .fillColor("white")
-    .font("Bold")
-    .fontSize(22)
-    .text("BOOKING COACH", 50, 25);
-  doc
-    .fillColor("white")
-    .font("Regular")
-    .fontSize(12)
-    .text("Hóa đơn đặt vé", 50, 55);
-  doc.fillColor("black");
-  doc.moveDown(3);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(40, 40, width - 80, height - 80);
 
-  // QR chỉ chứa bookingCode, status sẽ được lấy realtime từ server khi quét
-  const qrData = {
-    bookingCode: booking.bookingCode,
-  };
+  /* Header */
+  ctx.fillStyle = "#4d940e";
+  ctx.fillRect(40, 40, width - 80, 130);
 
-  const qrImage = await QRCode.toDataURL(JSON.stringify(qrData));
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 36px Montserrat";
+  ctx.fillText("NHÀ XE HƯƠNG DƯƠNG", 70, 95);
 
-  // BookingCode + QR
-  doc.font("Bold").fontSize(14).text(`Mã đặt vé: ${booking.bookingCode}`);
-  doc.image(
-    Buffer.from(qrImage.split(",")[1], "base64"),
-    doc.page.width - 170,
-    100,
-    {
-      fit: [100, 100],
-    }
+  ctx.font = "600 18px Montserrat";
+  ctx.fillText("E-TICKET / HÓA ĐƠN ĐIỆN TỬ", 70, 125);
+
+  /* QR Code */
+  const qrBuffer = await QRCode.toBuffer(
+    JSON.stringify({ bookingCode: booking.bookingCode }),
+    { width: 240, margin: 1 }
   );
-  doc.moveDown(3);
+  const qrImg = await loadImage(qrBuffer);
 
-  // Thông tin khách hàng
-  doc.font("Bold").text("Thông tin khách hàng", { underline: true });
-  doc
-    .font("Regular")
-    .text(`Tên khách: ${booking.customers?.[0]?.fullName || "N/A"}`)
-    .text(`SĐT: ${booking.customers?.[0]?.phone || "N/A"}`)
-    .text(`Email: ${booking.customers?.[0]?.email || "N/A"}`)
-    .moveDown(1);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(width - 310, 70, 260, 260);
+  ctx.drawImage(qrImg, width - 300, 80, 240, 240);
 
-  // Thông tin chuyến đi
-  doc.font("Bold").text("Thông tin chuyến đi", { underline: true });
+  /* Content */
+  let y = 230;
+  const left = 80;
+  const line = (size = 20) => (y += size + 18);
 
-  const routeText = `Tuyến: ${
-    booking.trip?.route?.fromLocation?.nameLocations || "N/A"
-  } --> ${booking.trip?.route?.toLocation?.nameLocations || "N/A"}`;
+  ctx.fillStyle = "#000";
 
-  const dateTimeText = `Ngày giờ: ${booking.trip?.startDate || ""} ${
-    booking.trip?.startTime || ""
-  }`;
+  /* Booking code */
+  ctx.font = "600 24px Montserrat";
+  ctx.fillText(`Mã vé: ${booking.bookingCode}`, left, y);
+  line(58);
 
-  const seatsText = `Ghế: ${
-    booking.seats?.map((s) => s.seat?.name).join(", ") || "N/A"
-  }`;
+  /* Customer */
+  ctx.font = "600 22px Montserrat";
+  ctx.fillText("👤 THÔNG TIN KHÁCH HÀNG", left, y);
+  line(22);
 
-  // Lấy thông tin xe
-  const vehicle = booking.trip?.vehicle;
-  const vehicleTypeMap = {
-    NORMAL: "Ghế ngồi",
-    SLEEPER: "Giường nằm",
-    DOUBLESLEEPER: "Giường đôi",
-    LIMOUSINE: "Limousine",
-  };
+  ctx.font = "20px Montserrat";
+  ctx.fillText(`Họ tên: ${booking.customers?.[0]?.fullName || "N/A"}`, left, y);
+  line();
 
-  const vehicleTypeCode = vehicle?.type;
-  const vehicleTypeLabel =
-    (vehicleTypeCode && vehicleTypeMap[vehicleTypeCode]) || "N/A";
+  ctx.fillText(`SĐT: ${booking.customers?.[0]?.phone || "N/A"}`, left, y);
+  line();
 
-  const licensePlate = vehicle?.licensePlate || "N/A";
-  const vehicleName = vehicle?.name || "";
+  ctx.fillText(`Email: ${booking.customers?.[0]?.email || "N/A"}`, left, y);
+  line(58);
 
-  doc
-    .font("Regular")
-    .text(routeText)
-    .text(dateTimeText)
-    .text(seatsText)
-    .text(
-      `Loại xe: ${vehicleTypeLabel}${vehicleName ? ` (${vehicleName})` : ""}`
-    )
-    .text(`Biển số: ${licensePlate}`)
-    .moveDown(1);
+  /* Trip */
+  ctx.font = "600 22px Montserrat";
+  ctx.fillText("🚌 THÔNG TIN CHUYẾN ĐI", left, y);
+  line(22);
 
-  // Thông tin thanh toán
-  doc.font("Bold").text("Thanh toán", { underline: true });
-  doc
-    .font("Regular")
-    .text(`Phương thức: ${payment?.method || "N/A"}`)
-    .text(`Tổng tiền: ${Number(booking.totalAmount).toLocaleString()} VND`)
-    .moveDown(2);
+  ctx.font = "20px Montserrat";
+  ctx.fillText(
+    `Tuyến: ${booking.trip?.route?.fromLocation?.nameLocations || "N/A"} → ${
+      booking.trip?.route?.toLocation?.nameLocations || "N/A"
+    }`,
+    left,
+    y
+  );
+  line();
 
-  // Footer
-  doc
-    .font("Regular")
-    .fontSize(10)
-    .fillColor("gray")
-    .text("Quét mã QR tại bến xe để xác nhận thanh toán.", { align: "center" })
-    .moveDown(0.5)
-    .text("Cảm ơn quý khách đã sử dụng dịch vụ Booking Coach!", {
-      align: "center",
-    });
+  ctx.fillText(
+    `Ngày giờ: ${booking.trip?.startDate || ""} ${
+      booking.trip?.startTime || ""
+    }`,
+    left,
+    y
+  );
+  line();
 
-  doc.end();
+  ctx.fillText(
+    `Ghế: ${booking.seats?.map((s) => s.seat?.name).join(", ") || "N/A"}`,
+    left,
+    y
+  );
+  line();
 
-  return new Promise((resolve, reject) => {
-    writeStream.on("finish", () => resolve(filePath));
-    writeStream.on("error", reject);
-  });
+  ctx.fillText(`Loại xe: ${booking.trip?.vehicle?.name || "N/A"}`, left, y);
+  line(58);
+
+  /* Payment */
+  ctx.font = "600 22px Montserrat";
+  ctx.fillText("💳 THANH TOÁN", left, y);
+  line(22);
+
+  ctx.font = "20px Montserrat";
+  ctx.fillText(`Phương thức: ${payment?.method || "N/A"}`, left, y);
+  line(25);
+
+  ctx.font = "bold 25px Montserrat";
+  ctx.fillStyle = "#b20909ff";
+  ctx.fillText(
+    `TỔNG TIỀN: ${Number(booking.totalAmount).toLocaleString()} VND`,
+    left,
+    y
+  );
+
+  /* Footer */
+  const footerY = height - 160;
+
+  ctx.strokeStyle = "#ddd";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, footerY);
+  ctx.lineTo(width - 60, footerY);
+  ctx.stroke();
+
+  ctx.fillStyle = "#555";
+  ctx.font = "16px Montserrat";
+  ctx.fillText("⚠️ Quét mã QR tại bến xe để xác nhận vé", left, footerY + 40);
+  ctx.fillText(
+    "Cảm ơn quý khách đã sử dụng dịch vụ của hãng xe khách Hương Dương ❤️",
+    left,
+    footerY + 70
+  );
+
+  /* Save */
+  const filePath = path.join(dir, `${booking.bookingCode}.png`);
+  fs.writeFileSync(filePath, canvas.toBuffer("image/png"));
+
+  return filePath;
 };
 
 // Lấy invoice file từ DB
