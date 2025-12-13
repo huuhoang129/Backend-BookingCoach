@@ -11,7 +11,7 @@ import authController from "../controllers/userManageController/authController.j
 import userController from "../controllers/userManageController/userController.js";
 import driverController from "../controllers/userManageController/driverController.js";
 import accountController from "../controllers/userManageController/accountController.js";
-
+import driverProfileController from "../controllers/driverManageController/driverProfileController.js";
 /* ======================= STATION MANAGE ======================= */
 import locationsController from "../controllers/stationManageController/locationController.js";
 import routesController from "../controllers/stationManageController/routeController.js";
@@ -31,6 +31,7 @@ import bookingController from "../controllers/bookingManageController/bookingCon
 import bookingCustomerController from "../controllers/bookingManageController/bookingCustomerController.js";
 import bookingPointController from "../controllers/bookingManageController/bookingPointController.js";
 import bookingSeatController from "../controllers/bookingManageController/bookingSeatController.js";
+import bookingCancellationController from "../controllers/bookingManageController/bookingCancellationController.js";
 import bookingPaymentController from "../controllers/bookingManageController/bookingPaymentController.js";
 import BookingNotification from "../controllers/bookingManageController/bookingNotificationController.js";
 import bookingVerify from "../controllers/bookingManageController/bookingVerifyController.js";
@@ -200,6 +201,7 @@ let initWebRoutes = (app) => {
     vehicleStatusController.deleteVehicleStatus
   );
 
+  /* ========== DRIVER MANAGE ========== */
   router.get(
     "/api/v1/driver-schedules",
     driverScheduleController.getAllDriverSchedules
@@ -221,6 +223,17 @@ let initWebRoutes = (app) => {
     driverScheduleController.deleteDriverSchedule
   );
   router.get("/api/v1/drivers-all", driverScheduleController.getAllDrivers);
+
+  // Driver Profile
+  router.get(
+    "/api/v1/driver-profile/:id",
+    driverProfileController.getDriverProfile
+  );
+
+  router.put(
+    "/api/v1/driver-profile/:id",
+    driverProfileController.updateDriverProfile
+  );
 
   /* ========== BOOKING MANAGE ========== */
   router.get("/api/v1/bookings", bookingController.getAllBookings);
@@ -272,6 +285,28 @@ let initWebRoutes = (app) => {
   // Booking Invoice
   router.get("/api/v1/bookings/:id/invoice", invoiceController.downloadInvoice);
 
+  // Booking Cancellation
+  router.post(
+    "/api/v1/booking-cancellations",
+    bookingCancellationController.createCancellation
+  );
+  router.get(
+    "/api/v1/booking-cancellations",
+    bookingCancellationController.getAllCancellations
+  );
+  router.get(
+    "/api/v1/booking-cancellations/:id",
+    bookingCancellationController.getCancellationById
+  );
+  router.put(
+    "/api/v1/booking-cancellations/:id",
+    bookingCancellationController.updateCancellation
+  );
+  router.delete(
+    "/api/v1/booking-cancellations/:id",
+    bookingCancellationController.deleteCancellation
+  );
+
   // Booking Payment
   router.get(
     "/api/v1/bookings/payments/all",
@@ -294,6 +329,11 @@ let initWebRoutes = (app) => {
   router.get(
     "/api/v1/bookings-notification/new",
     BookingNotification.getNewBookings
+  );
+
+  router.get(
+    "/api/v1/bookings-notification-cancellation/new",
+    BookingNotification.getCancellationBookings
   );
 
   /* ========== REPORTS ========== */

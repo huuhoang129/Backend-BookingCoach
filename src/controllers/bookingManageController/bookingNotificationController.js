@@ -21,4 +21,23 @@ const getNewBookings = async (req, res) => {
   }
 };
 
-export default { getNewBookings };
+const getCancellationBookings = async (req, res) => {
+  try {
+    const since = req.query.since || null;
+    const data = await bookingNotificationService.getNewRefundsService(since);
+    return res.status(200).json({
+      errCode: 0,
+      errMessage: "OK",
+      data,
+    });
+  } catch (e) {
+    console.error("getNewRefunds error:", e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Server error",
+      data: [],
+    });
+  }
+};
+
+export default { getNewBookings, getCancellationBookings };

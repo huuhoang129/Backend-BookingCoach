@@ -1,0 +1,25 @@
+DRIVER
+Driver 1: (Nguyễn Văn Tài)
+driver01@huongduong.com
+123456
+
+Driver 2: (Trần Đức Hùng)
+driver02@huongduong.com
+123456
+
+Driver 3: (Lê Hoàng Nam)
+driver03@huongduong.com
+123456
+-------------------------------------------------------
+KHÁCH HÀNG:
+User 1: (Phạm Thị Hoa)
+client01@huongduong.com
+123456
+
+User 2: (Võ Quốc Tuấn)
+client02@huongduong.com
+123456
+
+User 3: (Nguyễn Hồng Ngọc)
+client03@huongduong.com
+123456
